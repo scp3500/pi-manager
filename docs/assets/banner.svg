@@ -18,27 +18,21 @@
       .f { font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif; }
       .m { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
 
-      /* ----- slides: cover → dashboard → runtime → models → usage (20s) ----- */
-      .slide {
-        opacity: 0;
-        pointer-events: none;
-      }
-      /* base: cover always under; overlays cycle */
-      svg:not(:has(.slide:target)) .slide-cover {
-        opacity: 1;
-        pointer-events: auto;
-        animation: none;
-      }
-      svg:not(:has(.slide:target)) .slide-dashboard,
-      svg:not(:has(.slide:target)) .slide-runtime,
-      svg:not(:has(.slide:target)) .slide-models,
-      svg:not(:has(.slide:target)) .slide-usage {
+      /* Base: cover always visible (GitHub img may not support :has()) */
+      .slide { opacity: 0; }
+      .slide-cover { opacity: 1; }
+
+      /* Overlays cycle on top of cover; each has full opaque background */
+      .slide-dashboard,
+      .slide-runtime,
+      .slide-models,
+      .slide-usage {
         animation: autoFade 20s infinite;
       }
-      svg:not(:has(.slide:target)) .slide-dashboard { animation-delay: 4s; }
-      svg:not(:has(.slide:target)) .slide-runtime   { animation-delay: 8s; }
-      svg:not(:has(.slide:target)) .slide-models    { animation-delay: 12s; }
-      svg:not(:has(.slide:target)) .slide-usage     { animation-delay: 16s; }
+      .slide-dashboard { animation-delay: 4s; }
+      .slide-runtime   { animation-delay: 8s; }
+      .slide-models    { animation-delay: 12s; }
+      .slide-usage     { animation-delay: 16s; }
 
       @keyframes autoFade {
         0%   { opacity: 0; }
@@ -48,42 +42,29 @@
         100% { opacity: 0; }
       }
 
-      .slide:target {
-        opacity: 1 !important;
-        animation: none !important;
-      }
-      svg:has(.slide:target) .slide-cover:not(:target) {
-        opacity: 0 !important;
-        animation: none !important;
-      }
-
-      .tab-pill { opacity: 0; pointer-events: none; }
+      .tab-pill { opacity: 0; }
       .tab-label-off { fill: #8b98a9; font-weight: 600; }
 
-      /* pills only highlight on UI slides (not cover) */
-      svg:not(:has(.slide:target)) .pill-dash  { animation: pillOn 20s infinite; animation-delay: 4s; }
-      svg:not(:has(.slide:target)) .pill-run   { animation: pillOn 20s infinite; animation-delay: 8s; }
-      svg:not(:has(.slide:target)) .pill-model { animation: pillOn 20s infinite; animation-delay: 12s; }
-      svg:not(:has(.slide:target)) .pill-usage { animation: pillOn 20s infinite; animation-delay: 16s; }
+      .pill-dash  { animation: pillOn 20s infinite; animation-delay: 4s; }
+      .pill-run   { animation: pillOn 20s infinite; animation-delay: 8s; }
+      .pill-model { animation: pillOn 20s infinite; animation-delay: 12s; }
+      .pill-usage { animation: pillOn 20s infinite; animation-delay: 16s; }
       @keyframes pillOn {
         0%, 19.999% { opacity: 1; }
         20%, 100% { opacity: 0; }
       }
 
-      /* dots: 5 */
       .dot { fill: #5c6a7c; }
-      svg:not(:has(.slide:target)) .dot-1 { animation: dotOn 20s infinite; animation-delay: 0s; }
-      svg:not(:has(.slide:target)) .dot-2 { animation: dotOn 20s infinite; animation-delay: 4s; }
-      svg:not(:has(.slide:target)) .dot-3 { animation: dotOn 20s infinite; animation-delay: 8s; }
-      svg:not(:has(.slide:target)) .dot-4 { animation: dotOn 20s infinite; animation-delay: 12s; }
-      svg:not(:has(.slide:target)) .dot-5 { animation: dotOn 20s infinite; animation-delay: 16s; }
+      .dot-1 { animation: dotOn 20s infinite; animation-delay: 0s; }
+      .dot-2 { animation: dotOn 20s infinite; animation-delay: 4s; }
+      .dot-3 { animation: dotOn 20s infinite; animation-delay: 8s; }
+      .dot-4 { animation: dotOn 20s infinite; animation-delay: 12s; }
+      .dot-5 { animation: dotOn 20s infinite; animation-delay: 16s; }
       @keyframes dotOn {
         0%, 19.999% { fill: #5aa2ff; }
         20%, 100% { fill: #5c6a7c; }
       }
-
-      .hint { fill: #5c6a7c; font-size: 11px; }
-    ]]></style>
+]]></style>
   </defs>
 
   <rect width="1280" height="600" fill="url(#bg)"/>
@@ -135,27 +116,37 @@
       <!-- SLIDE dashboard -->
       
       
-      <!-- SLIDE cover (first) — big logo -->
+      
+      <!-- SLIDE cover: big logo only -->
       <g id="cover" class="slide slide-cover f">
         <rect width="1168" height="404" fill="#0a0e14"/>
-        <circle cx="584" cy="190" r="200" fill="#5aa2ff" opacity="0.07"/>
-        <circle cx="584" cy="190" r="140" fill="#3d7fd6" opacity="0.05"/>
+        <circle cx="584" cy="168" r="200" fill="#5aa2ff" opacity="0.10"/>
+        <circle cx="584" cy="168" r="130" fill="#3d7fd6" opacity="0.07"/>
 
-        <!-- huge brand mark centered -->
-        <g transform="translate(424,48)">
-          <rect width="320" height="320" rx="72" fill="#0f141c" stroke="#243041" stroke-width="2"/>
-          <g transform="translate(28,28) scale(0.33)">
-            <path fill="#5aa2ff" fill-rule="evenodd" d="
-              M165.29 165.29
-              H517.36 V400 H400 V517.36 H282.65 V634.72 H165.29 Z
-              M282.65 282.65 V400 H400 V282.65 Z
-            "/>
-            <path fill="#e7edf5" d="M517.36 400 H634.72 V634.72 H517.36 Z"/>
-          </g>
+        <!-- big mark centered -->
+        <rect x="404" y="22" width="360" height="360" rx="84" fill="#0f141c" stroke="#2f3d52" stroke-width="3"/>
+        <!-- simplified Pi logo geometry, large -->
+        <g transform="translate(444,62)">
+          <path fill="#5aa2ff" fill-rule="evenodd" d="
+            M0 0
+            H280
+            V176
+            H188
+            V264
+            H94
+            V352
+            H0
+            Z
+            M94 94
+            V176
+            H188
+            V94
+            Z
+          "/>
+          <path fill="#e7edf5" d="M280 176 H352 V352 H280 Z"/>
         </g>
-
-        <text x="584" y="400" text-anchor="middle" fill="#e7edf5" font-size="36" font-weight="800" letter-spacing="-0.5">Pi Manager</text>
       </g>
+
 
 
 <g id="dashboard" class="slide slide-dashboard f">

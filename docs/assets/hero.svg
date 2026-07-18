@@ -1,0 +1,410 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="660" viewBox="48 10 1184 560" role="img" aria-label="Pi Manager">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.15" y2="1">
+      <stop offset="0%" stop-color="#0a0e14"/>
+      <stop offset="100%" stop-color="#0f141c"/>
+    </linearGradient>
+    <linearGradient id="modelGlow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="rgba(90,162,255,0.16)"/>
+      <stop offset="70%" stop-color="rgba(90,162,255,0)"/>
+    </linearGradient>
+    <clipPath id="stageClip">
+      <rect width="1168" height="404" x="0" y="0"/>
+    </clipPath>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="120%">
+      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+    <style><![CDATA[
+      .f { font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif; }
+      .m { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
+
+      /* Base: cover always visible (GitHub img may not support :has()) */
+      .slide { opacity: 0; }
+      .slide-cover { opacity: 1; } /* base frame, not .slide so never hidden */
+
+      /* Overlays cycle on top of cover; each has full opaque background */
+      .slide-dashboard,
+      .slide-runtime,
+      .slide-models,
+      .slide-usage {
+        animation: autoFade 20s infinite;
+      }
+      .slide-dashboard { animation-delay: 4s; }
+      .slide-runtime   { animation-delay: 8s; }
+      .slide-models    { animation-delay: 12s; }
+      .slide-usage     { animation-delay: 16s; }
+
+      @keyframes autoFade {
+        0%   { opacity: 0; }
+        1.5% { opacity: 1; }
+        18.5% { opacity: 1; }
+        20%  { opacity: 0; }
+        100% { opacity: 0; }
+      }
+
+      .tab-pill { opacity: 0; }
+      .tab-label-off { fill: #8b98a9; font-weight: 600; }
+
+      .pill-dash  { animation: pillOn 20s infinite; animation-delay: 4s; }
+      .pill-run   { animation: pillOn 20s infinite; animation-delay: 8s; }
+      .pill-model { animation: pillOn 20s infinite; animation-delay: 12s; }
+      .pill-usage { animation: pillOn 20s infinite; animation-delay: 16s; }
+      @keyframes pillOn {
+        0%, 19.999% { opacity: 1; }
+        20%, 100% { opacity: 0; }
+      }
+
+      .dot { fill: #5c6a7c; }
+      .dot-1 { animation: dotOn 20s infinite; animation-delay: 0s; }
+      .dot-2 { animation: dotOn 20s infinite; animation-delay: 4s; }
+      .dot-3 { animation: dotOn 20s infinite; animation-delay: 8s; }
+      .dot-4 { animation: dotOn 20s infinite; animation-delay: 12s; }
+      .dot-5 { animation: dotOn 20s infinite; animation-delay: 16s; }
+      @keyframes dotOn {
+        0%, 19.999% { fill: #5aa2ff; }
+        20%, 100% { fill: #5c6a7c; }
+      }
+]]></style>
+  </defs>
+
+  <rect width="1280" height="600" fill="url(#bg)"/>
+
+  <g transform="translate(56,28)" filter="url(#shadow)">
+    <rect width="1168" height="520" rx="16" fill="#0a0e14" stroke="#243041"/>
+
+    <!-- header -->
+    <rect width="1168" height="56" rx="16" fill="#0f141c"/>
+    <rect y="40" width="1168" height="16" fill="#0f141c"/>
+    <line x1="0" y1="56" x2="1168" y2="56" stroke="#243041"/>
+
+    <g transform="translate(20,12) scale(0.038)">
+      <path fill="#5aa2ff" fill-rule="evenodd" d="M165.29 165.29 H517.36 V400 H400 V517.36 H282.65 V634.72 H165.29 Z M282.65 282.65 V400 H400 V282.65 Z"/>
+      <path fill="#e7edf5" d="M517.36 400 H634.72 V634.72 H517.36 Z"/>
+    </g>
+    <text class="f" x="56" y="34" fill="#e7edf5" font-size="15" font-weight="700">Pi Manager</text>
+    <text class="f" x="1140" y="34" text-anchor="end" fill="#5c6a7c" font-size="12">localhost:3001</text>
+
+    <!-- nav tabs (visual) -->
+    <g class="f" font-size="12.5">
+      <!-- pills behind -->
+      <rect class="tab-pill pill-dash"  x="190" y="13" width="52" height="28" rx="8" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
+      <rect class="tab-pill pill-run"   x="248" y="13" width="52" height="28" rx="8" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
+      <rect class="tab-pill pill-model" x="306" y="13" width="52" height="28" rx="8" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
+      <rect class="tab-pill pill-usage" x="494" y="13" width="52" height="28" rx="8" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
+
+      
+        <text class="tab-label-off lab-dash" x="216" y="32" text-anchor="middle">总览</text>
+      
+      
+        <text class="tab-label-off lab-run" x="274" y="32" text-anchor="middle">运行</text>
+      
+      
+        <text class="tab-label-off lab-model" x="332" y="32" text-anchor="middle">模型</text>
+      
+      <text class="tab-label-off" x="396" y="32" text-anchor="middle" fill="#8b98a9">子代理</text>
+      <text class="tab-label-off" x="462" y="32" text-anchor="middle" fill="#8b98a9">记忆</text>
+      
+        <text class="tab-label-off lab-usage" x="520" y="32" text-anchor="middle">用量</text>
+      
+      <text class="tab-label-off" x="578" y="32" text-anchor="middle" fill="#8b98a9">搜索</text>
+      <text x="636" y="32" text-anchor="middle" fill="#5c6a7c">更多</text>
+    </g>
+
+    <!-- stage -->
+    <g transform="translate(0,56)" clip-path="url(#stageClip)">
+
+      <!-- SLIDE dashboard -->
+      
+      
+      
+      
+      
+      <!-- SLIDE cover: BIG logo -->
+      <g id="cover" class="slide-cover f">
+        <rect width="1168" height="404" fill="#0a0e14"/>
+        <circle cx="584" cy="202" r="260" fill="#5aa2ff" opacity="0.14"/>
+        <circle cx="584" cy="202" r="180" fill="#5aa2ff" opacity="0.10"/>
+
+        <!-- oversized rounded plate -->
+        <rect x="334" y="12" width="500" height="380" rx="100" fill="#0f141c" stroke="#2f3d52" stroke-width="4"/>
+
+        <!-- brand logo: exact geometry, very large -->
+        <g transform="translate(584 200) scale(0.58) translate(-400 -400)">
+          <path fill="#5aa2ff" fill-rule="evenodd" d="M165.29 165.29 H517.36 V400 H400 V517.36 H282.65 V634.72 H165.29 Z M282.65 282.65 V400 H400 V282.65 Z"/>
+          <path fill="#e7edf5" d="M517.36 400 H634.72 V634.72 H517.36 Z"/>
+        </g>
+      </g>
+
+
+
+
+
+<g id="dashboard" class="slide slide-dashboard f">
+        <rect width="1168" height="404" fill="#0a0e14"/>
+        <g transform="translate(28,24)">
+          <text x="0" y="10" fill="#5c6a7c" font-size="11" font-weight="700" letter-spacing="1.4">DASHBOARD</text>
+          <text x="0" y="40" fill="#e7edf5" font-size="26" font-weight="750">总览</text>
+          <text x="0" y="64" fill="#8b98a9" font-size="13">本机 Pi 配置、用量与资源状态</text>
+
+          <rect y="84" width="700" height="86" rx="14" fill="#0f141c" stroke="rgba(90,162,255,0.35)"/>
+          <rect y="84" width="700" height="86" rx="14" fill="url(#modelGlow)"/>
+          <text x="22" y="112" fill="#5c6a7c" font-size="11" font-weight="700" letter-spacing="1">默认模型</text>
+          <text x="22" y="140" fill="#e7edf5" font-size="22" font-weight="750">OpenAI / gpt-4.1</text>
+          <text x="660" y="130" text-anchor="end" fill="#5aa2ff" font-size="13" font-weight="650">管理 →</text>
+
+          <g transform="translate(0,188)">
+            <g>
+              <rect width="164" height="96" rx="12" fill="#151c27" stroke="rgba(90,162,255,0.28)"/>
+              <rect width="164" height="96" rx="12" fill="rgba(90,162,255,0.07)"/>
+              <text x="14" y="28" fill="#5c6a7c" font-size="11" font-weight="700">今日</text>
+              <text x="14" y="58" fill="#e7edf5" font-size="24" font-weight="750">¥12.40</text>
+              <text x="14" y="80" fill="#5c6a7c" font-size="11">1.2M · 48 次</text>
+            </g>
+            <g transform="translate(178,0)">
+              <rect width="164" height="96" rx="12" fill="#151c27" stroke="#243041"/>
+              <rect width="164" height="96" rx="12" fill="rgba(63,185,80,0.08)"/>
+              <text x="14" y="28" fill="#5c6a7c" font-size="11" font-weight="700">缓存命中</text>
+              <text x="14" y="58" fill="#3fb950" font-size="24" font-weight="750">72%</text>
+              <text x="14" y="80" fill="#5c6a7c" font-size="11">主 68% · 子 81%</text>
+            </g>
+            <g transform="translate(356,0)">
+              <rect width="164" height="96" rx="12" fill="#151c27" stroke="#243041"/>
+              <text x="14" y="28" fill="#5c6a7c" font-size="11" font-weight="700">近 7 天</text>
+              <text x="14" y="58" fill="#e7edf5" font-size="22" font-weight="750">¥86.20</text>
+              <text x="14" y="80" fill="#5c6a7c" font-size="11">8.4M · 312 次</text>
+            </g>
+            <g transform="translate(534,0)">
+              <rect width="164" height="96" rx="12" fill="#151c27" stroke="#243041"/>
+              <text x="14" y="28" fill="#5c6a7c" font-size="11" font-weight="700">全局</text>
+              <text x="14" y="58" fill="#e7edf5" font-size="22" font-weight="750">¥1,024</text>
+              <text x="14" y="80" fill="#5c6a7c" font-size="11">120M · 3.1k 次</text>
+            </g>
+          </g>
+
+          <g transform="translate(0,304)">
+            <text x="0" y="0" fill="#e7edf5" font-size="14" font-weight="700">状态</text>
+            <g transform="translate(0,14)">
+              <rect width="110" height="48" rx="10" fill="#151c27" stroke="#243041"/>
+              <text x="12" y="20" fill="#5c6a7c" font-size="10">会话</text>
+              <text x="12" y="38" fill="#e7edf5" font-size="16" font-weight="700">171</text>
+              <rect x="120" width="110" height="48" rx="10" fill="#151c27" stroke="#243041"/>
+              <text x="132" y="20" fill="#5c6a7c" font-size="10">OpenVL</text>
+              <text x="132" y="38" fill="#3fb950" font-size="16" font-weight="700">可用</text>
+              <rect x="240" width="110" height="48" rx="10" fill="#151c27" stroke="#243041"/>
+              <text x="252" y="20" fill="#5c6a7c" font-size="10">记忆</text>
+              <text x="252" y="38" fill="#e7edf5" font-size="16" font-weight="700">已连接</text>
+              <rect x="360" width="110" height="48" rx="10" fill="#151c27" stroke="#243041"/>
+              <text x="372" y="20" fill="#5c6a7c" font-size="10">临时文件</text>
+              <text x="372" y="38" fill="#ffb454" font-size="16" font-weight="700">可清理</text>
+              <rect x="480" width="218" height="48" rx="10" fill="#151c27" stroke="#243041"/>
+              <text x="492" y="20" fill="#5c6a7c" font-size="10">维护</text>
+              <text x="492" y="38" fill="#8b98a9" font-size="13">健康检查 · 配置导出</text>
+            </g>
+          </g>
+
+          <g transform="translate(740,84)">
+            <rect width="370" height="268" rx="14" fill="#0f141c" stroke="#243041"/>
+            <text x="24" y="40" fill="#5aa2ff" font-size="12" font-weight="700" letter-spacing="1">01 / 总览</text>
+            <text x="24" y="78" fill="#e7edf5" font-size="22" font-weight="750">一屏看完本机 Pi</text>
+            <text x="24" y="112" fill="#8b98a9" font-size="14">默认模型直达管理</text>
+            <text x="24" y="136" fill="#8b98a9" font-size="14">今日费用 · 缓存命中分档上色</text>
+            <text x="24" y="160" fill="#8b98a9" font-size="14">会话 / OpenVL / 记忆就绪态</text>
+            <text x="24" y="200" fill="#5c6a7c" font-size="12">Dashboard · soft cache · 45s TTL</text>
+            <rect x="24" y="228" width="120" height="28" rx="14" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
+            <text x="84" y="246" text-anchor="middle" fill="#5aa2ff" font-size="12" font-weight="650">#/dashboard</text>
+          </g>
+        </g>
+      </g>
+
+      <!-- SLIDE runtime -->
+      <g id="runtime" class="slide slide-runtime f">
+        <rect width="1168" height="404" fill="#0a0e14"/>
+        <g transform="translate(28,24)">
+          <text x="0" y="18" fill="#e7edf5" font-size="18" font-weight="750">运行</text>
+          <rect x="70" y="0" width="78" height="26" rx="13" fill="rgba(90,162,255,0.12)" stroke="rgba(90,162,255,0.3)"/>
+          <text x="109" y="17" text-anchor="middle" fill="#e7edf5" font-size="12"><tspan fill="#5aa2ff" font-weight="700">1</tspan> 在干活</text>
+          <rect x="156" y="0" width="86" height="26" rx="13" fill="#151c27" stroke="#243041"/>
+          <text x="199" y="17" text-anchor="middle" fill="#8b98a9" font-size="12"><tspan font-weight="700">1</tspan> 在想/在说</text>
+          <rect x="250" y="0" width="64" height="26" rx="13" fill="#151c27" stroke="#243041"/>
+          <text x="282" y="17" text-anchor="middle" fill="#8b98a9" font-size="12"><tspan font-weight="700">2</tspan> 停了</text>
+          <rect x="322" y="0" width="78" height="26" rx="13" fill="#151c27" stroke="#243041"/>
+          <text x="361" y="17" text-anchor="middle" fill="#8b98a9" font-size="12"><tspan fill="#3fb950" font-weight="700">1</tspan> Pi进程</text>
+          <text x="700" y="17" text-anchor="end" fill="#5c6a7c" font-size="12">14:08:22</text>
+
+          <text x="0" y="56" fill="#8b98a9" font-size="12" font-weight="650">正在调工具</text>
+          <g transform="translate(0,68)">
+            <rect width="700" height="70" rx="12" fill="#151c27" stroke="rgba(90,162,255,0.28)"/>
+            <rect width="4" height="70" fill="#5aa2ff"/>
+            <circle cx="24" cy="24" r="5" fill="#5aa2ff"/>
+            <text x="40" y="28" fill="#5aa2ff" font-size="13" font-weight="650">在调工具</text>
+            <text x="40" y="52" fill="#e7edf5" font-size="14" font-weight="650">额我的 pi manager 有一个 bug…</text>
+            <rect x="480" y="18" width="96" height="24" rx="8" fill="rgba(90,162,255,0.1)" stroke="rgba(90,162,255,0.28)"/>
+            <text x="528" y="34" text-anchor="middle" fill="#8b98a9" font-size="12">bash · rg</text>
+            <text x="680" y="34" text-anchor="end" fill="#5c6a7c" font-size="12">0s 前</text>
+          </g>
+
+          <text x="0" y="168" fill="#8b98a9" font-size="12" font-weight="650">正在想 / 正在说</text>
+          <g transform="translate(0,180)">
+            <rect width="700" height="64" rx="12" fill="#151c27" stroke="#243041"/>
+            <rect width="4" height="64" fill="#a78bfa"/>
+            <circle cx="24" cy="24" r="5" fill="#a78bfa"/>
+            <text x="40" y="28" fill="#c4b5fd" font-size="13" font-weight="650">在想</text>
+            <text x="40" y="50" fill="#e7edf5" font-size="13">工具跑完了，还在继续</text>
+          </g>
+
+          <text x="0" y="272" fill="#8b98a9" font-size="12" font-weight="650">已退出 / 最近结束</text>
+          <g transform="translate(0,284)">
+            <rect width="700" height="56" rx="12" fill="#151c27" stroke="#243041"/>
+            <rect width="4" height="56" fill="#5c6a7c"/>
+            <circle cx="24" cy="28" r="5" fill="#5c6a7c"/>
+            <text x="40" y="24" fill="#8b98a9" font-size="13" font-weight="650">已退出</text>
+            <text x="40" y="44" fill="#e7edf5" font-size="13">本机没有 Pi 进程，jsonl 还停在中途</text>
+          </g>
+
+          <g transform="translate(740,0)">
+            <rect width="370" height="340" rx="14" fill="#0f141c" stroke="#243041"/>
+            <text x="24" y="40" fill="#5aa2ff" font-size="12" font-weight="700" letter-spacing="1">02 / 运行</text>
+            <text x="24" y="78" fill="#e7edf5" font-size="22" font-weight="750">任务视角 Agent View</text>
+            <text x="24" y="112" fill="#8b98a9" font-size="14">jsonl 推断 toolCall / 并行</text>
+            <text x="24" y="136" fill="#8b98a9" font-size="14">进程探测：退出即「已退出」</text>
+            <text x="24" y="160" fill="#8b98a9" font-size="14">2s 轮询 · 先缓存再刷新</text>
+            <text x="24" y="200" fill="#5c6a7c" font-size="12">Runtime · listPiProcesses()</text>
+            <rect x="24" y="228" width="110" height="28" rx="14" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
+            <text x="79" y="246" text-anchor="middle" fill="#5aa2ff" font-size="12" font-weight="650">#/runtime</text>
+          </g>
+        </g>
+      </g>
+
+      <!-- SLIDE models -->
+      <g id="models" class="slide slide-models f">
+        <rect width="1168" height="404" fill="#0a0e14"/>
+        <rect x="0" y="0" width="260" height="404" fill="#0f141c"/>
+        <line x1="260" y1="0" x2="260" y2="404" stroke="#243041"/>
+        <text x="20" y="28" fill="#5c6a7c" font-size="11" font-weight="700" letter-spacing="1">供应商</text>
+        <rect x="12" y="44" width="236" height="56" rx="10" fill="rgba(90,162,255,0.12)" stroke="rgba(90,162,255,0.35)"/>
+        <text x="28" y="68" fill="#e7edf5" font-size="14" font-weight="700">OpenAI</text>
+        <text x="28" y="88" fill="#8b98a9" font-size="11">已配置 · 默认</text>
+        <text x="28" y="130" fill="#e7edf5" font-size="14" font-weight="600">Anthropic</text>
+        <text x="28" y="148" fill="#5c6a7c" font-size="11">12 models</text>
+        <text x="28" y="190" fill="#e7edf5" font-size="14" font-weight="600">DeepSeek</text>
+        <text x="28" y="208" fill="#5c6a7c" font-size="11">4 models</text>
+
+        <g transform="translate(280,20)">
+          <text x="0" y="16" fill="#e7edf5" font-size="18" font-weight="750">OpenAI</text>
+          <rect x="520" y="0" width="72" height="28" rx="8" fill="transparent" stroke="#243041"/>
+          <text x="556" y="18" text-anchor="middle" fill="#8b98a9" font-size="12">检测</text>
+          <rect x="600" y="0" width="88" height="28" rx="8" fill="#5aa2ff"/>
+          <text x="644" y="18" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700">保存供应商</text>
+
+          <text x="0" y="56" fill="#5c6a7c" font-size="11">Base URL</text>
+          <rect y="64" width="688" height="34" rx="8" fill="#151c27" stroke="#243041"/>
+          <text class="m" x="12" y="86" fill="#8b98a9" font-size="12">https://api.openai.com/v1</text>
+          <text x="0" y="122" fill="#5c6a7c" font-size="11">API Key</text>
+          <rect y="130" width="688" height="34" rx="8" fill="#151c27" stroke="#243041"/>
+          <text class="m" x="12" y="152" fill="#5c6a7c" font-size="14">••••••••••••</text>
+
+          <text x="0" y="192" fill="#e7edf5" font-size="14" font-weight="700">模型</text>
+          <rect y="214" width="688" height="32" rx="8" fill="#151c27"/>
+          <text x="16" y="234" fill="#5c6a7c" font-size="11" font-weight="700">ID</text>
+          <text x="220" y="234" fill="#5c6a7c" font-size="11" font-weight="700">名称</text>
+          <text x="400" y="234" fill="#5c6a7c" font-size="11" font-weight="700">Ctx / Max</text>
+
+          <rect y="250" width="688" height="36" fill="rgba(90,162,255,0.08)"/>
+          <text x="16" y="273" fill="#e7edf5" font-size="12" font-weight="650">gpt-4.1</text>
+          <rect x="100" y="260" width="36" height="16" rx="4" fill="rgba(90,162,255,0.2)"/>
+          <text x="118" y="272" text-anchor="middle" fill="#5aa2ff" font-size="10">默认</text>
+          <text x="220" y="273" fill="#8b98a9" font-size="12">GPT-4.1</text>
+          <text x="400" y="273" fill="#5c6a7c" font-size="12">256k / 64k</text>
+          <text x="16" y="309" fill="#e7edf5" font-size="12" font-weight="650">claude-sonnet-4</text>
+          <text x="220" y="309" fill="#8b98a9" font-size="12">Claude Sonnet</text>
+          <text x="400" y="309" fill="#5c6a7c" font-size="12">128k / 32k</text>
+
+          <g transform="translate(0,330)">
+            <rect width="400" height="50" rx="10" fill="#0f141c" stroke="#243041"/>
+            <text x="16" y="20" fill="#5aa2ff" font-size="11" font-weight="700">03 / 模型</text>
+            <text x="16" y="38" fill="#8b98a9" font-size="12">供应商 CRUD · 远程拉模型 · 默认直达</text>
+          </g>
+        </g>
+      </g>
+
+      <!-- SLIDE usage -->
+      <g id="usage" class="slide slide-usage f">
+        <rect width="1168" height="404" fill="#0a0e14"/>
+        <g transform="translate(28,20)">
+          <text x="0" y="20" fill="#e7edf5" font-size="20" font-weight="750">用量分析</text>
+          <text x="0" y="42" fill="#8b98a9" font-size="12">费用 = jsonl 原值累加 · 显示 ¥</text>
+
+          <g transform="translate(0,58)">
+            <rect width="52" height="26" rx="13" fill="#151c27" stroke="#243041"/>
+            <text x="26" y="17" text-anchor="middle" fill="#8b98a9" font-size="12">今天</text>
+            <rect x="60" width="60" height="26" rx="13" fill="#151c27" stroke="#243041"/>
+            <text x="90" y="17" text-anchor="middle" fill="#8b98a9" font-size="12">近7天</text>
+            <rect x="128" width="68" height="26" rx="13" fill="#151c27" stroke="#243041"/>
+            <text x="162" y="17" text-anchor="middle" fill="#8b98a9" font-size="12">近30天</text>
+            <rect x="204" width="52" height="26" rx="13" fill="rgba(90,162,255,0.16)" stroke="rgba(90,162,255,0.4)"/>
+            <text x="230" y="17" text-anchor="middle" fill="#e7edf5" font-size="12" font-weight="650">全部</text>
+          </g>
+
+          <g transform="translate(0,104)">
+            <rect width="170" height="78" rx="12" fill="#151c27" stroke="rgba(90,162,255,0.25)"/>
+            <text x="14" y="28" fill="#5c6a7c" font-size="11">全部费用</text>
+            <text x="14" y="56" fill="#5aa2ff" font-size="22" font-weight="750">¥1,024.35</text>
+            <rect x="186" width="170" height="78" rx="12" fill="#151c27" stroke="#243041"/>
+            <text x="200" y="28" fill="#5c6a7c" font-size="11">Tokens</text>
+            <text x="200" y="56" fill="#e7edf5" font-size="22" font-weight="750">120.4M</text>
+            <rect x="372" width="170" height="78" rx="12" fill="#151c27" stroke="#243041"/>
+            <text x="386" y="28" fill="#5c6a7c" font-size="11">请求 / Turns</text>
+            <text x="386" y="56" fill="#e7edf5" font-size="22" font-weight="750">3,106</text>
+            <rect x="558" width="170" height="78" rx="12" fill="#151c27" stroke="#243041"/>
+            <rect x="558" width="170" height="78" rx="12" fill="rgba(63,185,80,0.07)"/>
+            <text x="572" y="28" fill="#5c6a7c" font-size="11">缓存命中率</text>
+            <text x="572" y="56" fill="#3fb950" font-size="22" font-weight="750">72.0%</text>
+          </g>
+
+          <g transform="translate(0,200)">
+            <rect width="728" height="160" rx="14" fill="#0f141c" stroke="#243041"/>
+            <text x="20" y="28" fill="#e7edf5" font-size="13" font-weight="700">费用趋势（按日）</text>
+            <g transform="translate(40,48)" fill="#5aa2ff">
+              <rect x="0" y="70" width="28" height="40" rx="4" opacity="0.45"/>
+              <rect x="48" y="50" width="28" height="60" rx="4" opacity="0.55"/>
+              <rect x="96" y="30" width="28" height="80" rx="4" opacity="0.65"/>
+              <rect x="144" y="55" width="28" height="55" rx="4" opacity="0.5"/>
+              <rect x="192" y="20" width="28" height="90" rx="4" opacity="0.75"/>
+              <rect x="240" y="40" width="28" height="70" rx="4" opacity="0.6"/>
+              <rect x="288" y="10" width="28" height="100" rx="4" opacity="0.9"/>
+              <rect x="336" y="35" width="28" height="75" rx="4" opacity="0.7"/>
+              <rect x="384" y="48" width="28" height="62" rx="4" opacity="0.55"/>
+              <rect x="432" y="25" width="28" height="85" rx="4" opacity="0.8"/>
+              <rect x="480" y="60" width="28" height="50" rx="4" opacity="0.5"/>
+              <rect x="528" y="15" width="28" height="95" rx="4" opacity="0.85"/>
+              <rect x="576" y="42" width="28" height="68" rx="4" opacity="0.65"/>
+              <rect x="624" y="5" width="28" height="105" rx="4"/>
+            </g>
+            <line x1="40" y1="158" x2="700" y2="158" stroke="#243041"/>
+          </g>
+
+          <g transform="translate(760,20)">
+            <rect width="350" height="340" rx="14" fill="#0f141c" stroke="#243041"/>
+            <text x="24" y="40" fill="#5aa2ff" font-size="12" font-weight="700" letter-spacing="1">04 / 用量</text>
+            <text x="24" y="78" fill="#e7edf5" font-size="22" font-weight="750">费用与 token 一本账</text>
+            <text x="24" y="112" fill="#8b98a9" font-size="14">与状态栏同一 cost.total 口径</text>
+            <text x="24" y="136" fill="#8b98a9" font-size="14">磁盘增量索引 · 切窗秒开</text>
+            <text x="24" y="160" fill="#8b98a9" font-size="14">主会话 / 子代理拆分统计</text>
+            <text x="24" y="200" fill="#5c6a7c" font-size="12">Usage · usage-index-v2</text>
+            <rect x="24" y="228" width="100" height="28" rx="14" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
+            <text x="74" y="246" text-anchor="middle" fill="#5aa2ff" font-size="12" font-weight="650">#/usage</text>
+          </g>
+        </g>
+      </g>
+    </g>
+
+        <!-- dots -->
+    <g transform="translate(526,480)">
+      <circle class="dot dot-1" cx="0" cy="0" r="6" fill="#5c6a7c"/>
+      <circle class="dot dot-2" cx="28" cy="0" r="6" fill="#5c6a7c"/>
+      <circle class="dot dot-3" cx="56" cy="0" r="6" fill="#5c6a7c"/>
+      <circle class="dot dot-4" cx="84" cy="0" r="6" fill="#5c6a7c"/>
+      <circle class="dot dot-5" cx="112" cy="0" r="6" fill="#5c6a7c"/>
+    </g>
+  </g>
+</svg>

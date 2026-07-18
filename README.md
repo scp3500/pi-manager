@@ -242,11 +242,17 @@ npm test
 
 用量统计思路参考社区 session 工具（见 `lib/usage.js` 头注释）。
 
+## 社区
+
+本项目认可并感谢 [LINUX DO](https://linux.do) 社区。
+
+[![LINUX DO](https://img.shields.io/badge/LINUX%20DO-community-0a0e14?style=flat-square&labelColor=5aa2ff)](https://linux.do)
+
 ---
 
 <div align="center">
 
-**[OpenVL](https://github.com/scp3500/openvl)** · **[MIT License](./LICENSE)**
+**[OpenVL](https://github.com/scp3500/openvl)** · **[LINUX DO](https://linux.do)** · **[MIT License](./LICENSE)**
 
 <sub>Built for people who live in the terminal — and still want a dashboard.</sub>
 

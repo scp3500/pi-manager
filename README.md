@@ -242,11 +242,14 @@ npm test
 
 用量统计思路参考社区 session 工具（见 `lib/usage.js` 头注释）。
 
-## 社区
+## 友链 / 社区认可
 
-本项目认可并感谢 [LINUX DO](https://linux.do) 社区。
+本项目**完整开源**，并**链接认可** [LINUX DO](https://linux.do) 社区：
 
-[![LINUX DO](https://img.shields.io/badge/LINUX%20DO-community-0a0e14?style=flat-square&labelColor=5aa2ff)](https://linux.do)
+- 官网 / 社区：[https://linux.do](https://linux.do)
+- 感谢 LINUX DO 佬友与开源氛围
+
+[![LINUX DO](https://img.shields.io/badge/LINUX%20DO-https%3A%2F%2Flinux.do-0a0e14?style=for-the-badge&labelColor=5aa2ff)](https://linux.do)
 
 ---
 

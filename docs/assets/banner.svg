@@ -20,7 +20,7 @@
 
       /* Base: cover always visible (GitHub img may not support :has()) */
       .slide { opacity: 0; }
-      .slide-cover { opacity: 1; }
+      .slide-cover { opacity: 1; } /* base frame, not .slide so never hidden */
 
       /* Overlays cycle on top of cover; each has full opaque background */
       .slide-dashboard,
@@ -117,35 +117,26 @@
       
       
       
-      <!-- SLIDE cover: big logo only -->
-      <g id="cover" class="slide slide-cover f">
+      
+      <!-- SLIDE cover: oversized brand logo -->
+      <g id="cover" class="slide-cover f">
         <rect width="1168" height="404" fill="#0a0e14"/>
-        <circle cx="584" cy="168" r="200" fill="#5aa2ff" opacity="0.10"/>
-        <circle cx="584" cy="168" r="130" fill="#3d7fd6" opacity="0.07"/>
+        <!-- glow -->
+        <circle cx="584" cy="202" r="220" fill="#5aa2ff" opacity="0.12"/>
+        <circle cx="584" cy="202" r="150" fill="#5aa2ff" opacity="0.08"/>
 
-        <!-- big mark centered -->
-        <rect x="404" y="22" width="360" height="360" rx="84" fill="#0f141c" stroke="#2f3d52" stroke-width="3"/>
-        <!-- simplified Pi logo geometry, large -->
-        <g transform="translate(444,62)">
-          <path fill="#5aa2ff" fill-rule="evenodd" d="
-            M0 0
-            H280
-            V176
-            H188
-            V264
-            H94
-            V352
-            H0
-            Z
-            M94 94
-            V176
-            H188
-            V94
-            Z
-          "/>
-          <path fill="#e7edf5" d="M280 176 H352 V352 H280 Z"/>
+        <!-- plate -->
+        <rect x="384" y="32" width="400" height="340" rx="88" fill="#0f141c" stroke="#2f3d52" stroke-width="3"/>
+
+        <!-- EXACT public/brand/logo.svg paths, scaled large & centered
+             original artboard 800x800; mark roughly in 165..635
+             scale 0.48 → ~225px; center at stage (584, 200) -->
+        <g transform="translate(584, 200) scale(0.48) translate(-400, -400)">
+          <path fill="#5aa2ff" fill-rule="evenodd" d="M165.29 165.29 H517.36 V400 H400 V517.36 H282.65 V634.72 H165.29 Z M282.65 282.65 V400 H400 V282.65 Z"/>
+          <path fill="#e7edf5" d="M517.36 400 H634.72 V634.72 H517.36 Z"/>
         </g>
       </g>
+
 
 
 

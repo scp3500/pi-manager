@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pi Manager</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <script>
+    try {
+      var __t = localStorage.getItem('pi-manager-theme');
+      var __ok = {
+        default: 1, midnight: 1, aurora: 1, orchid: 1, amber: 1, miku: 1,
+        light: 1, paper: 1, rose: 1, 'miku-light': 1
+      };
+      if (__ok[__t]) document.documentElement.setAttribute('data-theme', __t);
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="/style.css?v=nav-noscroll-1">
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand" title="Pi">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">Pi Manager</span>
+    </div>
+    <nav class="tabs" id="nav-tabs" aria-label="主导航">
+      <!-- 主栏：高频项；低频（含识图）进「更多」 -->
+      <a href="#/dashboard" class="tab" data-route="dashboard" title="总览">
+        <i data-lucide="layout-dashboard"></i><span class="tab-label">总览</span>
+      </a>
+      <a href="#/runtime" class="tab" data-route="runtime" title="运行">
+        <i data-lucide="monitor"></i><span class="tab-label">运行</span>
+      </a>
+      <a href="#/models" class="tab" data-route="models" title="模型">
+        <i data-lucide="cpu"></i><span class="tab-label">模型</span>
+      </a>
+      <a href="#/agents" class="tab" data-route="agents" title="子代理">
+        <i data-lucide="bot"></i><span class="tab-label">子代理</span>
+      </a>
+      <a href="#/memory" class="tab" data-route="memory" title="记忆">
+        <i data-lucide="notebook-pen"></i><span class="tab-label">记忆</span>
+      </a>
+      <a href="#/usage" class="tab" data-route="usage" title="用量">
+        <i data-lucide="activity"></i><span class="tab-label">用量</span>
+      </a>
+      <a href="#/search" class="tab" data-route="search" title="搜索">
+        <i data-lucide="search"></i><span class="tab-label">搜索</span>
+      </a>
+
+      <div class="nav-more" id="nav-more">
+        <button type="button" class="tab nav-more-btn" id="nav-more-btn" aria-haspopup="menu" aria-expanded="false" title="更多">
+          <i data-lucide="ellipsis"></i><span class="tab-label">更多</span>
+        </button>
+        <div class="nav-more-menu hidden" id="nav-more-menu" role="menu">
+          <a href="#/openvl" class="nav-more-item" data-route="openvl" role="menuitem">
+            <i data-lucide="image"></i><span>识图</span>
+          </a>
+          <a href="#/prompt" class="nav-more-item" data-route="prompt" role="menuitem">
+            <i data-lucide="file-text"></i><span>提示词</span>
+          </a>
+          <a href="#/knowledge" class="nav-more-item" data-route="knowledge" role="menuitem">
+            <i data-lucide="library"></i><span>知识库</span>
+          </a>
+          <a href="#/skills" class="nav-more-item" data-route="skills" role="menuitem">
+            <i data-lucide="sparkles"></i><span>Skills</span>
+          </a>
+          <a href="#/plugins" class="nav-more-item" data-route="plugins" role="menuitem">
+            <i data-lucide="puzzle"></i><span>插件</span>
+          </a>
+          <a href="#/guides" class="nav-more-item" data-route="guides" role="menuitem">
+            <i data-lucide="book-open"></i><span>教程</span>
+          </a>
+          <div class="nav-more-sep"></div>
+          <a href="#/sessions" class="nav-more-item" data-route="sessions" role="menuitem">
+            <i data-lucide="messages-square"></i><span>会话</span>
+          </a>
+          <a href="#/trash" class="nav-more-item" data-route="trash" role="menuitem">
+            <i data-lucide="trash-2"></i><span>回收站</span>
+          </a>
+          <a href="#/workspaces" class="nav-more-item" data-route="workspaces" role="menuitem">
+            <i data-lucide="folder-tree"></i><span>工作区</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+    <div class="header-right shell-actions">
+      <span id="header-meta" class="meta shell-meta" title=""></span>
+      <div class="theme-picker" id="theme-picker">
+        <label class="sr-only" for="theme-select-btn">主题</label>
+        <!-- 隐藏原生 select：兼容旧 JS / 无障碍回退，界面用自定义菜单避免 optgroup 白字 -->
+        <select id="theme-select" class="theme-select-native sr-only" tabindex="-1" aria-hidden="true">
+          <optgroup label="深色">
+            <option value="default">默认蓝</option>
+            <option value="midnight">午夜</option>
+            <option value="aurora">极光</option>
+            <option value="orchid">紫雾</option>
+            <option value="amber">琥珀</option>
+            <option value="miku">初音</option>
+          </optgroup>
+          <optgroup label="浅色">
+            <option value="light">浅色</option>
+            <option value="paper">纸感</option>
+            <option value="rose">玫瑰</option>
+            <option value="miku-light">初音浅色</option>
+          </optgroup>
+        </select>
+        <button
+          type="button"
+          id="theme-select-btn"
+          class="theme-select-btn"
+          title="切换主题"
+          aria-label="切换主题"
+          aria-haspopup="listbox"
+          aria-expanded="false"
+          aria-controls="theme-menu"
+        >
+          <span class="theme-select-btn-label" id="theme-select-label">默认蓝</span>
+          <i data-lucide="chevron-down" class="theme-select-chevron" aria-hidden="true"></i>
+        </button>
+        <div id="theme-menu" class="theme-menu hidden" role="listbox" aria-labelledby="theme-select-btn">
+          <div class="theme-menu-group-label" role="presentation">深色</div>
+          <button type="button" class="theme-menu-item" role="option" data-theme-value="default">默认蓝</button>
+          <button type="button" class="theme-menu-item" role="option" data-theme-value="midnight">午夜</button>
+          <button type="button" class="theme-menu-item" role="option" data-theme-value="aurora">极光</button>
+          <button type="button" class="theme-menu-item" role="option" data-theme-value="orchid">紫雾</button>
+          <button type="button" class="theme-menu-item" role="option" data-theme-value="amber">琥珀</button>
+          <button type="button" class="theme-menu-item" role="option" data-theme-value="miku">初音</button>
+          <div class="theme-menu-group-label" role="presentation">浅色</div>
+          <button type="button" class="theme-menu-item" role="option" data-theme-value="light">浅色</button>
+          <button type="button" class="theme-menu-item" role="option" data-theme-value="paper">纸感</button>
+          <button type="button" class="theme-menu-item" role="option" data-theme-value="rose">玫瑰</button>
+          <button type="button" class="theme-menu-item" role="option" data-theme-value="miku-light">初音浅色</button>
+        </div>
+      </div>
+      <button type="button" id="chat-toggle-btn" class="btn ghost sm icon-btn shell-icon" title="助手 (Ctrl+/)" aria-label="打开助手">
+        <i data-lucide="message-square"></i>
+      </button>
+      <button type="button" id="help-btn" class="btn ghost sm icon-btn shell-icon" title="帮助 / 引导" aria-label="帮助">
+        <i data-lucide="circle-help"></i>
+      </button>
+      <span id="global-dirty" class="status saved shell-dirty">已保存</span>
+      <button type="button" id="global-save" class="btn primary sm shell-save" title="Ctrl+S">
+        <i data-lucide="save"></i><span class="btn-label">保存</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- ═══════════════ DASHBOARD ═══════════════ -->
+    <section id="page-dashboard" class="page hidden">
+      <div class="toolbar">
+        <p class="page-hint" id="hint-dashboard">本机 Pi 配置与资源一览；会话清理、临时文件也在这里处理</p>
+        <div class="toolbar-actions">
+          <button type="button" id="dash-refresh" class="btn ghost sm">刷新</button>
+        </div>
+      </div>
+      <div class="dash-wrap" id="dash-root">
+        <div class="empty"><p>加载中…</p></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ SEARCH ═══════════════ -->
+    <section id="page-search" class="page hidden">
+      <div class="search-hero">
+        <label class="search-bar" for="search-q">
+          <i data-lucide="search" class="search-bar-icon" aria-hidden="true"></i>
+          <input
+            type="search"
+            id="search-q"
+            class="search-bar-input"
+            placeholder="搜索提示词、子代理、Skills、记忆、知识库…（输入即搜）"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button type="button" id="search-clear" class="search-bar-clear hidden" title="清空" aria-label="清空">
+            <i data-lucide="x"></i>
+          </button>
+        </label>
+        <div class="search-scope-row" id="search-scope-row" role="tablist" aria-label="搜索范围">
+          <button type="button" class="scope-chip active" data-scope="all" role="tab" aria-selected="true">全部</button>
+          <button type="button" class="scope-chip" data-scope="prompts" role="tab" aria-selected="false">提示词</button>
+          <button type="button" class="scope-chip" data-scope="agents" role="tab" aria-selected="false">子代理</button>
+          <button type="button" class="scope-chip" data-scope="skills" role="tab" aria-selected="false">Skills</button>
+          <button type="button" class="scope-chip" data-scope="memory" role="tab" aria-selected="false">记忆</button>
+          <button type="button" class="scope-chip" data-scope="knowledge" role="tab" aria-selected="false">知识库</button>
+        </div>
+        <div class="sess-summary search-summary" id="search-summary">输入至少 2 个字符，自动出结果</div>
+      </div>
+      <div class="content search-wrap">
+        <div id="search-results" class="search-results" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ USAGE ═══════════════ -->
+    <section id="page-usage" class="page hidden">
+      <div class="usage-topbar">
+        <div class="usage-topbar-left">
+          <div class="usage-topbar-titles">
+            <strong class="usage-top-title">用量分析</strong>
+            <p class="page-hint usage-top-hint">费用 = jsonl 原值累加 · 显示 ¥</p>
+          </div>
+          <div class="usage-presets" id="usage-presets" role="tablist" aria-label="时间范围">
+            <button type="button" class="usage-preset" data-window="today" role="tab">今天</button>
+            <button type="button" class="usage-preset" data-window="week" role="tab">近7天</button>
+            <button type="button" class="usage-preset" data-window="month" role="tab">近30天</button>
+            <button type="button" class="usage-preset active" data-window="all" role="tab" aria-selected="true">全部</button>
+          </div>
+        </div>
+        <div class="usage-topbar-right toolbar-actions">
+          <button type="button" id="usage-refresh" class="btn ghost sm">刷新</button>
+        </div>
+      </div>
+      <div class="content usage-page" id="usage-root">
+        <div class="empty"><p>加载中…</p></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ RUNTIME ═══════════════ -->
+    <section id="page-runtime" class="page hidden">
+      <div class="toolbar">
+        <div>
+          <div class="toolbar-title">运行</div>
+          <p class="page-hint" id="hint-runtime">Agent View：在干活 / 在想 / 停了 · 点行看详情</p>
+        </div>
+        <div class="toolbar-actions rt-toolbar">
+          <label class="rt-auto-label" title="约每 2 秒强制刷新">
+            <input type="checkbox" id="rt-auto" checked>
+            <span>自动刷新</span>
+          </label>
+          <button type="button" id="rt-refresh" class="btn ghost sm">刷新</button>
+        </div>
+      </div>
+      <div class="content runtime-wrap" id="runtime-root">
+        <div class="empty"><p>加载中…</p></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ SESSIONS ═══════════════ -->
+    <section id="page-sessions" class="page hidden">
+      <div class="toolbar">
+        <div>
+          <div class="toolbar-title">会话</div>
+          <p class="page-hint" id="hint-sessions">浏览并清理 ~/.pi/agent/sessions 下的历史会话</p>
+        </div>
+        <div class="toolbar-actions sess-toolbar">
+          <input type="search" id="sess-q" class="sess-search" placeholder="搜索 cwd / id" autocomplete="off" aria-label="搜索会话">
+          <select id="sess-days" class="sess-days" title="清理早于 N 天" aria-label="清理天数">
+            <option value="7">清理 &gt;7 天</option>
+            <option value="14">清理 &gt;14 天</option>
+            <option value="30" selected>清理 &gt;30 天</option>
+            <option value="90">清理 &gt;90 天</option>
+          </select>
+          <button type="button" id="sess-cleanup-old" class="btn ghost sm">按天清理</button>
+          <button type="button" id="sess-delete-selected" class="btn danger sm">删除所选</button>
+          <button type="button" id="sess-refresh" class="btn ghost sm">刷新</button>
+        </div>
+      </div>
+      <div class="content sess-wrap">
+        <div class="sess-summary" id="sess-summary">—</div>
+        <div class="sess-table-wrap">
+          <table class="sess-table" id="sess-table">
+            <thead>
+              <tr>
+                <th class="sess-check-col" scope="col"><input type="checkbox" id="sess-check-all" title="全选本页" aria-label="全选本页"></th>
+                <th scope="col">更新时间</th>
+                <th scope="col">大小</th>
+                <th scope="col">工作目录</th>
+                <th scope="col">会话 ID</th>
+                <th scope="col">文件</th>
+              </tr>
+            </thead>
+            <tbody id="sess-tbody">
+              <tr><td colspan="6" class="muted sess-empty-cell"><div class="sess-empty-inline"><p class="sess-empty-title">加载中…</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="sess-footer" id="sess-footer"></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ TRASH ═══════════════ -->
+    <section id="page-trash" class="page hidden">
+      <div class="toolbar">
+        <div>
+          <div class="toolbar-title">回收站</div>
+          <p class="page-hint">工作区 .trash 软删除项：可还原或永久清空</p>
+        </div>
+        <div class="toolbar-actions sess-toolbar">
+          <select id="trash-ws" class="sess-days" title="工作区" aria-label="工作区"></select>
+          <button type="button" id="trash-refresh" class="btn ghost sm">刷新</button>
+          <button type="button" id="trash-purge-all" class="btn danger sm">清空回收站</button>
+        </div>
+      </div>
+      <div class="content sess-wrap">
+        <div class="sess-summary" id="trash-summary">—</div>
+        <div class="sess-table-wrap">
+          <table class="sess-table" id="trash-table">
+            <thead>
+              <tr>
+                <th scope="col">删除时间</th>
+                <th scope="col">原路径</th>
+                <th scope="col">类型</th>
+                <th scope="col">大小</th>
+                <th scope="col" class="sess-actions">操作</th>
+              </tr>
+            </thead>
+            <tbody id="trash-list">
+              <tr><td colspan="5" class="muted sess-empty-cell"><div class="sess-empty-inline"><p class="sess-empty-title">—</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ MODELS ═══════════════ -->
+    <section id="page-models" class="page hidden">
+      <div class="toolbar">
+        <div class="defaults-inline" id="defaults-bar">
+          <label>默认 Provider
+            <select id="d-provider"></select>
+          </label>
+          <label>默认 Model
+            <select id="d-model"></select>
+          </label>
+          <label>Thinking
+            <select id="d-thinking">
+              <option value="">—</option>
+              <option value="off">off</option>
+              <option value="minimal">minimal</option>
+              <option value="low">low</option>
+              <option value="medium">medium</option>
+              <option value="high">high</option>
+              <option value="xhigh">xhigh</option>
+              <option value="max">max</option>
+            </select>
+          </label>
+          <button type="button" id="defaults-save" class="btn primary sm">保存默认</button>
+        </div>
+        <p class="page-hint" id="hint-models">先配置供应商与模型，再在默认区设定常用 Provider / Model</p>
+        <div class="toolbar-actions">
+          <span id="models-dirty" class="status saved">已保存</span>
+          <button type="button" id="provider-new" class="btn ghost sm">+ 供应商</button>
+        </div>
+      </div>
+
+      <div class="split">
+        <aside class="side">
+          <div class="side-head">供应商</div>
+          <div id="provider-list" class="side-list"></div>
+        </aside>
+
+        <section class="content" id="provider-empty">
+          <div class="empty">
+            <p>选择左侧供应商，或新建一个</p>
+            <p class="page-hint-inline">填写 Base URL 与 API Key 后，可拉取远程模型并设为默认</p>
+          </div>
+        </section>
+
+        <section class="content hidden" id="provider-editor">
+          <div class="content-head">
+            <h2 id="p-title">—</h2>
+            <div class="content-actions">
+              <button type="button" id="provider-test" class="btn ghost sm" title="用当前表单 Base URL / Key 发一次最小请求">检测</button>
+              <button type="button" id="provider-delete" class="btn danger sm">删除</button>
+              <button type="button" id="provider-save" class="btn primary sm">保存供应商</button>
+            </div>
+          </div>
+          <div id="provider-status" class="hint-block" style="margin: 0 22px 12px; display: none"></div>
+
+          <div class="stack">
+            <form id="provider-form" class="fields" autocomplete="off">
+              <div class="grid-2">
+                <label>ID
+                  <input id="p-id" spellcheck="false" placeholder="ohmygpt">
+                </label>
+                <label>API
+                  <select id="p-api">
+                    <option value="openai-completions">openai-completions</option>
+                    <option value="openai-responses">openai-responses</option>
+                    <option value="openai-codex-responses">openai-codex-responses</option>
+                    <option value="anthropic-messages">anthropic-messages</option>
+                    <option value="google-generative-ai">google-generative-ai</option>
+                  </select>
+                </label>
+              </div>
+              <label>Base URL
+                <input id="p-baseUrl" spellcheck="false" placeholder="https://api.example.com/v1">
+              </label>
+              <label>API Key <span class="hint">明文 / $ENV / !command · 已配置时默认显示为 ••••••，点显示可查看/修改</span>
+                <div class="key-row">
+                  <input id="p-apiKey" type="password" spellcheck="false" placeholder="sk-…" autocomplete="off">
+                  <button type="button" id="toggle-key" class="btn ghost sm">显示</button>
+                </div>
+              </label>
+              <label class="check">
+                <input type="checkbox" id="p-authHeader"> authHeader（Bearer）
+              </label>
+              <details class="adv">
+                <summary>高级 · Compat / Headers (JSON)</summary>
+                <label>Compat
+                  <textarea id="p-compat" rows="3" spellcheck="false"></textarea>
+                </label>
+                <label>Headers
+                  <textarea id="p-headers" rows="2" spellcheck="false"></textarea>
+                </label>
+              </details>
+            </form>
+
+            <div class="block">
+              <div class="block-head">
+                <h3>模型</h3>
+                <div class="content-actions">
+                  <button type="button" id="model-fetch" class="btn ghost sm" title="请求 baseUrl/models 获取可用模型">获取模型</button>
+                  <button type="button" id="model-new" class="btn ghost sm">+ 模型</button>
+                </div>
+              </div>
+              <div id="model-table-wrap">
+                <table class="table" id="model-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>名称</th>
+                      <th>Ctx / Max</th>
+                      <th>价格 in/out</th>
+                      <th>R</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="model-tbody"></tbody>
+                </table>
+              </div>
+
+              <div id="remote-models-panel" class="remote-panel hidden">
+                <div class="block-head">
+                  <h3>远程模型 <span class="muted" id="remote-models-meta"></span></h3>
+                  <div class="content-actions">
+                    <button type="button" id="remote-select-new" class="btn ghost sm">只选未导入</button>
+                    <button type="button" id="remote-select-all" class="btn ghost sm">全选</button>
+                    <button type="button" id="remote-select-none" class="btn ghost sm">清空</button>
+                    <button type="button" id="remote-import" class="btn primary sm">导入选中</button>
+                    <button type="button" id="remote-close" class="btn ghost sm">关闭</button>
+                  </div>
+                </div>
+                <div class="remote-toolbar">
+                  <input id="remote-filter" type="search" placeholder="过滤 id / name…" spellcheck="false">
+                  <label class="check inline"><input type="checkbox" id="remote-skip-existing" checked> 跳过已有</label>
+                </div>
+                <div id="remote-models-list" class="remote-list"></div>
+              </div>
+            </div>
+
+            <div class="block hidden" id="model-editor">
+              <div class="block-head">
+                <h3 id="m-title">编辑模型</h3>
+                <div class="content-actions">
+                  <button type="button" id="model-delete" class="btn danger sm">删除模型</button>
+                  <button type="button" id="model-save" class="btn primary sm">保存模型</button>
+                </div>
+              </div>
+              <form id="model-form" class="fields" autocomplete="off">
+                <div class="grid-2">
+                  <label>Model ID
+                    <input id="m-id" spellcheck="false" placeholder="deepseek-v4-pro">
+                  </label>
+                  <label>显示名称
+                    <input id="m-name" placeholder="DeepSeek V4 Pro">
+                  </label>
+                </div>
+                <div class="grid-3">
+                  <label>Context Window
+                    <input id="m-contextWindow" type="number" min="0" placeholder="128000">
+                  </label>
+                  <label>Max Tokens
+                    <input id="m-maxTokens" type="number" min="0" placeholder="16384">
+                  </label>
+                  <label>Input
+                    <select id="m-input">
+                      <option value="text">text</option>
+                      <option value="text,image">text + image</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="grid-2">
+                  <label>API 覆盖 <span class="hint">空=继承供应商</span>
+                    <select id="m-api">
+                      <option value="">(继承供应商)</option>
+                      <option value="openai-completions">openai-completions</option>
+                      <option value="openai-responses">openai-responses</option>
+                      <option value="openai-codex-responses">openai-codex-responses</option>
+                      <option value="anthropic-messages">anthropic-messages</option>
+                      <option value="google-generative-ai">google-generative-ai</option>
+                    </select>
+                  </label>
+                  <label class="check" style="margin-top:18px">
+                    <input type="checkbox" id="m-reasoning"> Reasoning / Thinking
+                  </label>
+                </div>
+
+                <div class="block-lite">
+                  <div class="block-head" style="margin-bottom:8px">
+                    <h3>价格 · $/1M tokens</h3>
+                    <button type="button" id="m-cost-zero" class="btn ghost sm">全填 0</button>
+                  </div>
+                  <div class="grid-4">
+                    <label>input
+                      <input id="m-cost-input" type="number" min="0" step="any" placeholder="0">
+                    </label>
+                    <label>output
+                      <input id="m-cost-output" type="number" min="0" step="any" placeholder="0">
+                    </label>
+                    <label>cacheRead
+                      <input id="m-cost-cacheRead" type="number" min="0" step="any" placeholder="0">
+                    </label>
+                    <label>cacheWrite
+                      <input id="m-cost-cacheWrite" type="number" min="0" step="any" placeholder="0">
+                    </label>
+                  </div>
+                  <label style="margin-top:8px">Cost tiers (JSON 可选)
+                    <textarea id="m-cost-tiers" rows="2" spellcheck="false" placeholder='[{"inputTokensAbove":272000,"input":10,"output":45,"cacheRead":1,"cacheWrite":12.5}]'></textarea>
+                  </label>
+                </div>
+
+                <div class="block-lite">
+                  <div class="block-head" style="margin-bottom:8px">
+                    <h3>Thinking Level Map</h3>
+                    <button type="button" id="m-tlm-clear" class="btn ghost sm">清空</button>
+                  </div>
+                  <div class="tlm-grid" id="m-tlm-grid"></div>
+                  <p class="hint-block">留空=用 Pi 默认映射；填 provider 值=支持该档；选「禁用」=该档不可用</p>
+                </div>
+
+                <details class="adv">
+                  <summary>高级 · Compat / Headers (JSON)</summary>
+                  <label>Compat
+                    <textarea id="m-compat" rows="5" spellcheck="false" placeholder='{"thinkingFormat":"deepseek","requiresReasoningContentOnAssistantMessages":true}'></textarea>
+                  </label>
+                  <label>Headers
+                    <textarea id="m-headers" rows="2" spellcheck="false"></textarea>
+                  </label>
+                </details>
+              </form>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ═══════════════ 子代理 ═══════════════ -->
+    <section id="page-agents" class="page hidden">
+      <div class="toolbar">
+        <div class="toolbar-title">子代理 · <span class="muted" id="agents-count">0</span></div>
+        <div class="cat-filters" id="agent-cat-filters"></div>
+        <p class="page-hint" id="hint-agents">编辑子代理与工具权限</p>
+        <div class="toolbar-actions">
+          <span id="agents-dirty" class="status saved">已保存</span>
+          <span id="workflow-dirty" class="status saved hidden">规范已保存</span>
+          <button type="button" id="agent-new" class="btn ghost sm">+ 子代理</button>
+        </div>
+      </div>
+
+      <div class="page-linkbar">
+        <a class="page-linkbar-a" href="#/guides?topic=agents">教程：子代理</a>
+        <span class="page-linkbar-sep">·</span>
+        <a class="page-linkbar-a" href="#/workspaces">工作区映射</a>
+        <span class="page-linkbar-sep">·</span>
+        <a class="page-linkbar-a" href="https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent/examples/extensions/subagent" target="_blank" rel="noopener noreferrer">官方示例</a>
+      </div>
+
+      <div class="split">
+        <aside class="side side-agents">
+          <div class="side-switch" id="agent-side-switch" role="tablist" aria-label="侧栏视图">
+            <button type="button" class="side-switch-btn active" data-side="agents">子代理</button>
+            <button type="button" class="side-switch-btn" data-side="workflow">工作流</button>
+          </div>
+          <div id="agent-side-agents" class="side-pane">
+            <div class="side-head">按分类</div>
+            <div id="agent-list" class="side-list"></div>
+          </div>
+          <div id="agent-side-workflow" class="side-pane hidden">
+            <div class="side-head">memory/pi · 按需读取</div>
+            <div id="agent-workflow-list" class="side-list"></div>
+          </div>
+        </aside>
+
+        <section class="content" id="agent-empty">
+          <div class="empty">
+            <p id="agent-empty-text">选择左侧子代理，或新建一个</p>
+            <p class="page-hint-inline">工具权限与 Prompt 决定子代理能做什么；工作流规范在侧栏切换</p>
+            <div class="empty-actions">
+              <a class="btn primary sm" href="#/guides?topic=agents">查看子代理教程</a>
+              <a class="btn ghost sm" href="#/workspaces">配置工作区 / 工作流</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="content editor-pane hidden" id="workflow-editor">
+          <div class="content-head">
+            <h2 id="wf-title">—</h2>
+            <div class="content-actions">
+              <div class="mode-switch" id="wf-mode-switch" role="tablist">
+                <button type="button" class="mode-btn active" data-mode="edit" data-kind="workflow">编辑</button>
+                <button type="button" class="mode-btn" data-mode="preview" data-kind="workflow">预览</button>
+                <button type="button" class="mode-btn" data-mode="split" data-kind="workflow">分栏</button>
+              </div>
+              <button type="button" id="workflow-reload" class="btn ghost sm">重新加载</button>
+              <button type="button" id="workflow-save" class="btn primary sm">保存</button>
+            </div>
+          </div>
+          <div class="hint-block" id="wf-meta"></div>
+          <details class="usage-details" id="wf-usage">
+            <summary>用法速查 · 开发 / 研究 / 调试</summary>
+            <div class="usage-grid">
+              <div class="usage-item"><strong>开发</strong><span>planner → 确认计划 → worker → reviewer</span></div>
+              <div class="usage-item"><strong>研究</strong><span>planner → researcher 并行 → 主 Agent 综合</span></div>
+              <div class="usage-item"><strong>调试</strong><span>investigator → planner → worker → 验证</span></div>
+              <div class="usage-item"><strong>并行</strong><span>互不依赖用 <code>tasks</code>；共享文件勿并发写</span></div>
+              <div class="usage-item"><strong>指令</strong><span><code>/plan-and-implement</code> <code>/debug</code> <code>/deep-research</code> <code>/verify</code></span></div>
+              <div class="usage-item"><strong>停/不停</strong><span>只在 planner 后与信息死角停</span></div>
+            </div>
+          </details>
+          <div class="doc-view mode-edit" id="wf-view">
+            <textarea id="wf-content" class="editor-textarea" rows="24"></textarea>
+            <div id="wf-preview" class="md-preview" aria-label="Markdown 预览"></div>
+          </div>
+        </section>
+
+        <section class="content hidden" id="agent-editor">
+          <div class="content-head">
+            <h2 id="a-title">—</h2>
+            <div class="content-actions">
+              <button type="button" id="agent-delete" class="btn danger sm">删除</button>
+              <button type="button" id="agent-save" class="btn primary sm">保存</button>
+            </div>
+          </div>
+          <form id="agent-form" class="fields" autocomplete="off">
+            <div class="grid-2">
+              <label>名称
+                <input id="a-name" spellcheck="false" placeholder="my-agent">
+              </label>
+              <label>分类
+                <select id="a-category"></select>
+              </label>
+            </div>
+            <div class="grid-2">
+              <label>模型
+                <select id="a-model"></select>
+              </label>
+              <label>思考程度 thinking
+                <select id="a-thinking">
+                  <option value="">(跟随默认 / 未写)</option>
+                  <option value="off">off</option>
+                  <option value="minimal">minimal</option>
+                  <option value="low">low</option>
+                  <option value="medium">medium</option>
+                  <option value="high">high</option>
+                  <option value="xhigh">xhigh</option>
+                  <option value="max">max</option>
+                </select>
+                <span class="hint">写入 agent frontmatter；Pi 官方 subagent 当前未必读取，仅作记录/将来用</span>
+              </label>
+            </div>
+            <label>分类来源
+              <input id="a-category-source" readonly class="readonly">
+            </label>
+            <label>描述
+              <textarea id="a-description" rows="2"></textarea>
+            </label>
+
+            <div class="block-lite">
+              <div class="block-head">
+                <h3>工具权限</h3>
+                <span class="muted" id="a-tools-summary"></span>
+              </div>
+              <div class="preset-row" id="a-tool-presets"></div>
+              <div class="tool-pool" id="a-tool-pool"></div>
+              <label>自定义工具 <span class="hint">扩展工具名，逗号分隔，会并入上方勾选</span>
+                <input id="a-tools-custom" spellcheck="false" placeholder="my_custom_tool, other_tool">
+              </label>
+              <input type="hidden" id="a-tools" value="">
+            </div>
+
+            <label>Prompt
+              <textarea id="a-prompt" rows="16" class="mono"></textarea>
+            </label>
+          </form>
+        </section>
+      </div>
+    </section>
+
+    <!-- ═══════════════ 识图 ═══════════════ -->
+    <section id="page-openvl" class="page hidden">
+      <div class="toolbar">
+        <div class="toolbar-title">识图 · OpenVL 视觉配置</div>
+        <p class="page-hint" id="hint-openvl">视觉配置</p>
+        <div class="toolbar-actions">
+          <span id="openvl-dirty" class="status saved">已保存</span>
+          <button type="button" id="openvl-new" class="btn ghost sm">+ 配置</button>
+          <button type="button" id="openvl-clone" class="btn ghost sm">复制</button>
+        </div>
+      </div>
+
+      <div class="page-linkbar">
+        <a class="page-linkbar-a" href="#/guides?topic=openvl">教程：识图 OpenVL</a>
+        <span class="page-linkbar-sep">·</span>
+        <a class="page-linkbar-a" href="https://github.com/scp3500/openvl" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <span class="page-linkbar-sep">·</span>
+        <a class="page-linkbar-a" href="https://www.npmjs.com/package/@scp3500/openvl" target="_blank" rel="noopener noreferrer">npm</a>
+      </div>
+
+      <div class="split">
+        <aside class="side">
+          <div class="side-head">配置列表</div>
+          <div id="openvl-list" class="side-list"></div>
+          <details class="openvl-local-fold" id="openvl-local-fold">
+            <summary class="side-head openvl-local-summary">本地备用（高级 · 默认不用）</summary>
+            <button type="button" id="openvl-ollama-item" class="side-item" data-id="__ollama__">
+              <div class="si-title">Ollama / llama.cpp</div>
+              <div class="si-sub">仅高级用户；日常用上方云端 profile</div>
+            </button>
+          </details>
+        </aside>
+
+        <section class="content" id="openvl-empty">
+          <div class="empty" id="openvl-empty-msg">
+            <p>选择左侧云端配置，或新建一个</p>
+            <p class="page-hint-inline">日常识图走 profile；本地 Ollama 已折叠在侧栏「高级」</p>
+            <div class="empty-actions">
+              <a class="btn primary sm" href="#/guides?topic=openvl">查看识图教程</a>
+              <a class="btn ghost sm" href="https://www.npmjs.com/package/@scp3500/openvl" target="_blank" rel="noopener noreferrer">安装 OpenVL</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="content hidden" id="openvl-editor">
+          <div class="content-head">
+            <h2 id="ov-title">—</h2>
+            <div class="content-actions">
+              <button type="button" id="openvl-activate" class="btn ghost sm">设为当前</button>
+              <button type="button" id="openvl-test" class="btn ghost sm" title="用当前表单地址/Key 发一次最小请求，检查是否连通">检测</button>
+              <button type="button" id="openvl-delete" class="btn danger sm">删除</button>
+              <button type="button" id="openvl-save" class="btn primary sm">保存</button>
+            </div>
+          </div>
+
+          <div id="openvl-status" class="hint-block" style="margin-bottom:14px"></div>
+
+          <form id="openvl-form" class="fields" autocomplete="off">
+            <div class="grid-2">
+              <label>配置名称
+                <input id="ov-name" spellcheck="false" placeholder="如: ohmycdn">
+              </label>
+              <label>状态
+                <input id="ov-active-label" readonly class="readonly" value="">
+              </label>
+            </div>
+            <label>API Key
+              <div class="key-row">
+                <input id="ov-apiKey" type="password" spellcheck="false" placeholder="sk-…">
+                <button type="button" id="ov-toggle-key" class="btn ghost sm">显示</button>
+              </div>
+            </label>
+            <label>API 地址
+              <input id="ov-apiBase" spellcheck="false" placeholder="https://…/v1/chat/completions 或 /v1/responses">
+            </label>
+            <label>当前模型
+              <div class="key-row">
+                <select id="ov-model"></select>
+                <input id="ov-model-new" spellcheck="false" placeholder="新模型 ID" style="max-width:220px">
+                <button type="button" id="ov-model-add" class="btn ghost sm">添加</button>
+              </div>
+            </label>
+            <div class="block-lite ov-models-block">
+              <div class="block-head">
+                <h3>模型列表 <span class="muted" id="ov-models-count">0</span></h3>
+                <div class="content-actions">
+                  <button type="button" id="ov-model-detect" class="btn ghost sm" title="从接口 /models 获取可选模型">获取模型</button>
+                </div>
+              </div>
+              <div id="ov-model-tags" class="preset-row"></div>
+              <div id="ov-remote-models-panel" class="ov-fetch-panel hidden">
+                <div class="ov-fetch-head">
+                  <div class="ov-fetch-title">
+                    <strong>接口返回的模型</strong>
+                    <span class="muted" id="ov-remote-meta"></span>
+                  </div>
+                  <div class="content-actions">
+                    <button type="button" id="ov-remote-import-new" class="btn ghost sm">导入未有</button>
+                    <button type="button" id="ov-remote-import-sel" class="btn primary sm">导入勾选</button>
+                    <button type="button" id="ov-remote-close" class="btn ghost sm">收起</button>
+                  </div>
+                </div>
+                <div class="ov-fetch-toolbar">
+                  <input id="ov-remote-filter" type="search" placeholder="过滤模型 id…" spellcheck="false" autocomplete="off">
+                  <label class="check inline"><input type="checkbox" id="ov-remote-hide-local"> 隐藏已有</label>
+                  <button type="button" id="ov-remote-select-new" class="btn ghost sm">只选新</button>
+                  <button type="button" id="ov-remote-select-none" class="btn ghost sm">清空勾选</button>
+                </div>
+                <div id="ov-remote-models-list" class="ov-fetch-list"></div>
+              </div>
+            </div>
+            <div class="block-lite">
+              <div class="block-head"><h3>路径</h3></div>
+              <div class="hint-block mono" id="ov-paths"></div>
+            </div>
+          </form>
+        </section>
+
+        <section class="content hidden" id="openvl-ollama-editor">
+          <div class="content-head">
+            <h2>本地备用</h2>
+            <div class="content-actions">
+              <button type="button" id="openvl-ollama-check" class="btn ghost sm">检查连接</button>
+              <button type="button" id="openvl-ollama-save" class="btn primary sm">保存</button>
+            </div>
+          </div>
+          <form id="openvl-ollama-form" class="fields" autocomplete="off">
+            <label>后端
+              <select id="ov-backend">
+                <option value="ollama">Ollama</option>
+                <option value="llamacpp">llama.cpp</option>
+              </select>
+            </label>
+            <label>API 地址
+              <input id="ov-ollama-url" spellcheck="false" placeholder="http://127.0.0.1:11434">
+            </label>
+            <label>模型
+              <input id="ov-ollama-model" spellcheck="false" placeholder="openbmb/minicpm-v4.6">
+            </label>
+            <div id="ov-ollama-status" class="hint-block">未检查</div>
+            <div class="hint-block">本地备用仅保存在 profiles.json 的 ollama 段，不写 config.env。openvl CLI 仍走云端 active profile。</div>
+          </form>
+        </section>
+      </div>
+    </section>
+
+    <!-- ═══════════════ 提示词 ═══════════════ -->
+    <section id="page-prompt" class="page hidden">
+      <div class="toolbar">
+        <div class="toolbar-title">提示词 · AGENTS.md + prompts/*</div>
+        <p class="page-hint" id="hint-prompt">编辑全局 AGENTS.md 与提示词模板，支持预览 / 分栏</p>
+        <div class="toolbar-actions">
+          <span id="prompt-dirty" class="status saved">已保存</span>
+          <div class="mode-switch" id="prompt-mode-switch" role="tablist" aria-label="显示模式">
+            <button type="button" class="mode-btn active" data-mode="edit" data-kind="prompt">编辑</button>
+            <button type="button" class="mode-btn" data-mode="preview" data-kind="prompt">预览</button>
+            <button type="button" class="mode-btn" data-mode="split" data-kind="prompt">分栏</button>
+          </div>
+          <button type="button" id="prompt-new" class="btn ghost sm">+ 模板</button>
+          <button type="button" id="prompt-reload" class="btn ghost sm">重新加载</button>
+          <button type="button" id="prompt-delete" class="btn danger sm">删除</button>
+          <button type="button" id="prompt-save" class="btn primary sm">保存</button>
+        </div>
+      </div>
+      <div class="split">
+        <aside class="side">
+          <div class="side-head">文件</div>
+          <div id="prompt-list" class="side-list"></div>
+        </aside>
+        <section class="content editor-pane" id="prompt-editor">
+          <div class="content-head">
+            <h2 id="prompt-title">—</h2>
+          </div>
+          <div class="hint-block" id="prompt-path"></div>
+          <div class="doc-view mode-edit" id="prompt-view">
+            <textarea id="prompt-content" class="editor-textarea" rows="28"></textarea>
+            <div id="prompt-preview" class="md-preview" aria-label="Markdown 预览"></div>
+          </div>
+          <div class="block-lite" style="margin-top:12px">
+            <div class="block-head"><h3>备份</h3><span class="muted" id="prompt-bak-count">0</span></div>
+            <div id="prompt-backups" class="preset-row"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ═══════════════ Skills ═══════════════ -->
+    <section id="page-skills" class="page hidden">
+      <div class="toolbar">
+        <div class="toolbar-title">Skills · <span class="muted" id="skills-count">0</span></div>
+        <p class="page-hint" id="hint-skills">开关 Skill 目录；改完后在 Pi 中执行 /reload</p>
+        <div class="toolbar-actions">
+          <span id="skills-dirty" class="status saved">已保存</span>
+          <button type="button" id="skills-reload" class="btn ghost sm">刷新</button>
+          <button type="button" id="skills-save" class="btn primary sm">保存设置</button>
+        </div>
+      </div>
+      <div class="content" style="height:calc(100% - var(--toolbar-h)); overflow:auto">
+        <div class="stack" style="max-width:1100px;margin:0 auto;padding:18px 22px 32px">
+          <form id="skills-settings-form" class="fields">
+            <label class="check"><input type="checkbox" id="skills-enable-commands"> 启用 skill 命令（enableSkillCommands）</label>
+            <label>settings.skills 路径列表 <span class="hint">每行一个路径，支持 ~/</span>
+              <textarea id="skills-paths" class="mono" rows="4"></textarea>
+            </label>
+          </form>
+          <div class="block-lite">
+            <div class="block-head"><h3>Skills 开关</h3></div>
+            <div class="hint-block" style="margin-bottom:10px">
+              单个 skill 开关会把目录在 <code>skills/</code> 与 <code>skills-disabled/</code> 之间移动（Pi 官方无 per-skill 配置项）。
+              改完后在 Pi 里执行 <code>/reload</code> 生效。
+            </div>
+            <div id="skills-list" class="remote-list" style="max-height:none"></div>
+          </div>
+          <div class="hint-block mono" id="skills-scanned"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ 插件 ═══════════════ -->
+    <section id="page-plugins" class="page hidden">
+      <div class="toolbar">
+        <div class="toolbar-title">插件 · packages / extensions</div>
+        <p class="page-hint" id="hint-plugins">管理 npm packages 与本地 extensions 路径</p>
+        <div class="toolbar-actions">
+          <span id="plugins-dirty" class="status saved">已保存</span>
+          <button type="button" id="plugins-normalize" class="btn ghost sm" title="把绝对路径改成 ~/.pi/agent/...">路径便携化</button>
+          <button type="button" id="plugins-reload" class="btn ghost sm">刷新</button>
+          <button type="button" id="plugins-save" class="btn primary sm">保存</button>
+        </div>
+      </div>
+      <div class="content" style="height:calc(100% - var(--toolbar-h)); overflow:auto">
+        <div class="stack plugins-page-stack">
+
+          <div class="page-linkbar inline">
+            <a class="page-linkbar-a" href="#/guides?topic=plugins">教程：插件安装</a>
+            <span class="page-linkbar-sep">·</span>
+            <a class="page-linkbar-a" href="https://pi.dev/packages" target="_blank" rel="noopener noreferrer">包目录</a>
+            <span class="page-linkbar-sep">·</span>
+            <a class="page-linkbar-a" href="https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/packages.md" target="_blank" rel="noopener noreferrer">Packages 文档</a>
+          </div>
+
+          <p class="page-hint-inline" id="plugins-path-hint">extensions 建议用 <code>~/.pi/agent/extensions/...</code>；保存时会自动便携化。</p>
+          <form id="plugins-form" class="fields">
+            <label>packages <span class="hint">每行一个 · pi install 写入后会出现在这里</span>
+              <textarea id="plugins-packages" class="mono" rows="6" placeholder="npm:@scope/pkg@1.0.0&#10;git:github.com/user/repo@v1"></textarea>
+            </label>
+            <label>extensions <span class="hint">每行一个本地路径（可用 ~/）</span>
+              <textarea id="plugins-extensions" class="mono" rows="6" placeholder="~/.pi/agent/extensions/my-ext.ts"></textarea>
+            </label>
+          </form>
+          <div class="block-lite">
+            <div class="block-head"><h3>本地 extensions 目录</h3><span class="muted" id="plugins-local-dir"></span></div>
+            <div id="plugins-local-list" class="remote-list" style="max-height:240px"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════ 教程 ═══════════════ -->
+    <section id="page-guides" class="page hidden">
+      <div class="toolbar">
+        <div class="toolbar-title">教程 · 安装与用法</div>
+        <p class="page-hint" id="hint-guides">子代理 · 识图 · 插件</p>
+        <div class="toolbar-actions">
+          <div class="guides-tabs" id="guides-tabs" role="tablist">
+            <button type="button" class="guides-tab active" data-topic="agents" role="tab">子代理</button>
+            <button type="button" class="guides-tab" data-topic="openvl" role="tab">识图</button>
+            <button type="button" class="guides-tab" data-topic="plugins" role="tab">插件</button>
+          </div>
+        </div>
+      </div>
+      <div class="content guides-content">
+        <div class="guides-stack">
+
+          <article class="guide-panel" id="guide-agents" data-topic="agents">
+            <header class="guide-panel-head">
+              <h2>子代理</h2>
+              <div class="guide-panel-actions">
+                <button type="button" class="btn primary sm" id="guide-install-agent">一键创建示例 agent</button>
+                <a class="btn ghost sm" href="#/agents">打开子代理页</a>
+                <a class="btn ghost sm" href="#/workspaces">工作区映射</a>
+              </div>
+            </header>
+            <p class="guide-status" id="guide-agent-status"></p>
+            <div class="page-guide-grid">
+              <div class="page-guide-card">
+                <h4>是什么</h4>
+                <ul class="page-guide-list">
+                  <li>每个子代理是 <code>~/.pi/agent/agents/</code> 下的一份 Markdown（frontmatter + Prompt）</li>
+                  <li>主会话通过 <code>subagent</code> 工具按名称调用；可单跑或 <code>tasks[]</code> 并行</li>
+                  <li>侧栏「工作流」是 memory/pi 里的协作规范（按需 read）</li>
+                </ul>
+              </div>
+              <div class="page-guide-card">
+                <h4>怎么建</h4>
+                <ol class="page-guide-list numbered">
+                  <li>打开子代理页 →「+ 子代理」</li>
+                  <li>填名称、模型，勾选<strong>工具权限</strong></li>
+                  <li>写清 Prompt：职责、输出格式、边界</li>
+                  <li>保存后，在 Pi 里让主 Agent 调用该名称</li>
+                </ol>
+                <p class="page-guide-note">工作流规范需要先在「工作区」映射 memory 目录。</p>
+              </div>
+              <div class="page-guide-card">
+                <h4>调用示例</h4>
+                <pre class="page-guide-code" id="guide-agents-code"># 主 Agent 侧（示意）
+subagent · agent: worker · task: "实现登录页"
+
+# 并行
+subagent · tasks: [
+  { agent: "researcher", task: "查 A" },
+  { agent: "researcher", task: "查 B" }
+]</pre>
+                <div class="page-guide-actions">
+                  <button type="button" class="btn ghost sm" data-copy-target="guide-agents-code">复制示例</button>
+                </div>
+              </div>
+            </div>
+            <div class="page-guide-links">
+              <span class="page-guide-links-k">外链</span>
+              <a class="page-guide-chip" href="https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent/examples/extensions/subagent" target="_blank" rel="noopener noreferrer">官方 subagent 示例</a>
+              <a class="page-guide-chip" href="https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/extensions.md" target="_blank" rel="noopener noreferrer">Extensions 文档</a>
+              <a class="page-guide-chip" href="https://github.com/badlogic/pi-mono" target="_blank" rel="noopener noreferrer">Pi 源码仓库</a>
+            </div>
+          </article>
+
+          <article class="guide-panel hidden" id="guide-openvl" data-topic="openvl">
+            <header class="guide-panel-head">
+              <h2>识图 · OpenVL</h2>
+              <div class="guide-panel-actions">
+                <button type="button" class="btn primary sm" id="guide-install-openvl">一键安装 OpenVL</button>
+                <a class="btn ghost sm" href="#/openvl">打开识图页</a>
+              </div>
+            </header>
+            <p class="guide-status" id="guide-openvl-status"></p>
+            <pre class="guide-install-log hidden" id="guide-openvl-log" aria-live="polite"></pre>
+            <div class="page-guide-grid">
+              <div class="page-guide-card">
+                <h4>是什么</h4>
+                <ul class="page-guide-list">
+                  <li><strong>OpenVL</strong>：本机视觉 CLI / Skill，让 Agent 看图</li>
+                  <li>识图页管理云端 profile（Key、地址、模型）与可选本地 Ollama</li>
+                  <li>「设为当前」同步到 OpenVL 的 <code>config.env</code></li>
+                </ul>
+              </div>
+              <div class="page-guide-card">
+                <h4>安装</h4>
+                <pre class="page-guide-code" id="guide-openvl-install">npm install -g @scp3500/openvl
+
+# 可选：指定安装目录
+set OPENVL_PKG_DIR=C:\path\to\openvl
+
+openvl -key sk-你的密钥
+openvl -api https://你的中转/v1/chat/completions</pre>
+                <div class="page-guide-actions">
+                  <button type="button" class="btn ghost sm" data-copy-target="guide-openvl-install">复制安装命令</button>
+                </div>
+              </div>
+              <div class="page-guide-card">
+                <h4>配置与 CLI</h4>
+                <ol class="page-guide-list numbered">
+                  <li>识图页新建 profile，填 Key / 地址 / 模型</li>
+                  <li>「设为当前」→「检测」</li>
+                  <li>终端调用 CLI</li>
+                </ol>
+                <pre class="page-guide-code" id="guide-openvl-cli">openvl photo.png
+openvl -c
+openvl -c "读出图中文字"
+openvl a.png b.png</pre>
+                <div class="page-guide-actions">
+                  <button type="button" class="btn ghost sm" data-copy-target="guide-openvl-cli">复制 CLI</button>
+                </div>
+              </div>
+            </div>
+            <div class="page-guide-links">
+              <span class="page-guide-links-k">外链</span>
+              <a class="page-guide-chip" href="https://github.com/scp3500/openvl" target="_blank" rel="noopener noreferrer">OpenVL GitHub</a>
+              <a class="page-guide-chip" href="https://www.npmjs.com/package/@scp3500/openvl" target="_blank" rel="noopener noreferrer">npm @scp3500/openvl</a>
+              <a class="page-guide-chip" href="https://github.com/scp3500/openvl#readme" target="_blank" rel="noopener noreferrer">README</a>
+            </div>
+          </article>
+
+          <article class="guide-panel hidden" id="guide-plugins" data-topic="plugins">
+            <header class="guide-panel-head">
+              <h2>插件 · packages / extensions</h2>
+              <div class="guide-panel-actions">
+                <a class="btn primary sm" href="#/plugins">打开插件页</a>
+              </div>
+            </header>
+            <div class="page-guide-grid">
+              <div class="page-guide-card">
+                <h4>两种东西</h4>
+                <ul class="page-guide-list">
+                  <li><strong>packages</strong>：<code>pi install</code> 安装的可分享包</li>
+                  <li><strong>extensions</strong>：本机扩展文件/目录路径</li>
+                </ul>
+                <p class="page-guide-note">插件页编辑的是 <code>settings.json</code> 列表；装包优先用终端 CLI。</p>
+              </div>
+              <div class="page-guide-card">
+                <h4>一键安装（npm 包）</h4>
+                <p class="page-guide-note">仅允许 <code>npm:包名</code> 白名单格式。git/本地路径请用终端。</p>
+                <div class="guide-install-row">
+                  <input id="guide-plugin-spec" class="mono" spellcheck="false" placeholder="npm:@scope/pkg 或 pkg-name" value="">
+                  <button type="button" class="btn primary sm" id="guide-install-plugin">安装</button>
+                </div>
+                <p class="guide-status" id="guide-plugin-status"></p>
+                <pre class="guide-install-log hidden" id="guide-plugin-log" aria-live="polite"></pre>
+                <p class="page-guide-note warn">第三方包拥有本机完整权限，安装前请确认来源。</p>
+              </div>
+              <div class="page-guide-card">
+                <h4>终端命令</h4>
+                <pre class="page-guide-code" id="guide-plugins-install">pi install npm:@scope/pkg@1.0.0
+pi install git:github.com/user/repo@v1
+pi install https://github.com/user/repo
+pi install ./path/to/local-package
+
+pi list
+pi remove npm:@scope/pkg
+pi update --extensions</pre>
+                <div class="page-guide-actions">
+                  <button type="button" class="btn ghost sm" data-copy-target="guide-plugins-install">复制命令</button>
+                </div>
+              </div>
+              <div class="page-guide-card">
+                <h4>本控制台</h4>
+                <ol class="page-guide-list numbered">
+                  <li>终端装好后打开插件页点「刷新」</li>
+                  <li>packages / extensions 每行一条</li>
+                  <li>保存；绝对路径可「路径便携化」</li>
+                </ol>
+              </div>
+            </div>
+            <div class="page-guide-links">
+              <span class="page-guide-links-k">外链</span>
+              <a class="page-guide-chip" href="https://pi.dev/packages" target="_blank" rel="noopener noreferrer">包目录 pi.dev/packages</a>
+              <a class="page-guide-chip" href="https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/packages.md" target="_blank" rel="noopener noreferrer">Packages 文档</a>
+              <a class="page-guide-chip" href="https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/extensions.md" target="_blank" rel="noopener noreferrer">Extensions 文档</a>
+              <a class="page-guide-chip" href="https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent/examples/extensions" target="_blank" rel="noopener noreferrer">官方扩展示例</a>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ 记忆 ═══════════════ -->
+    <section id="page-memory" class="page hidden">
+      <div class="toolbar">
+        <div class="toolbar-title">记忆 · <span class="muted" id="mem-ws-label">—</span></div>
+        <p class="page-hint" id="hint-memory">记忆目录</p>
+        <div class="toolbar-actions">
+          <span id="mem-dirty" class="status saved">已保存</span>
+          <div class="file-actions" id="mem-file-actions">
+            <button type="button" id="mem-new-file" class="btn ghost sm" title="在当前目录新建 md">+ 文件</button>
+            <button type="button" id="mem-new-dir" class="btn ghost sm" title="新建子文件夹">+ 文件夹</button>
+            <button type="button" id="mem-rename" class="btn ghost sm" disabled>重命名</button>
+            <button type="button" id="mem-delete" class="btn danger sm" disabled>删除</button>
+          </div>
+          <div class="mode-switch" id="mem-mode-switch" role="tablist" aria-label="显示模式">
+            <button type="button" class="mode-btn active" data-mode="edit" data-kind="memory">编辑</button>
+            <button type="button" class="mode-btn" data-mode="preview" data-kind="memory">预览</button>
+            <button type="button" class="mode-btn" data-mode="split" data-kind="memory">分栏</button>
+          </div>
+          <button type="button" id="mem-reload" class="btn ghost sm">刷新</button>
+          <button type="button" id="mem-save" class="btn primary sm" disabled>保存</button>
+        </div>
+      </div>
+      <div class="split">
+        <aside class="side">
+          <div class="side-head">目录</div>
+          <div id="mem-tree" class="side-list file-tree"></div>
+        </aside>
+        <section class="content" id="mem-empty">
+          <div class="empty">
+            <p>选择左侧文件开始编辑</p>
+          </div>
+        </section>
+        <section class="content editor-pane hidden" id="mem-editor">
+          <div class="content-head">
+            <h2 id="mem-title">—</h2>
+          </div>
+          <div class="hint-block" id="mem-meta"></div>
+          <div class="doc-view mode-edit" id="mem-view">
+            <textarea id="mem-content" class="editor-textarea" rows="24" disabled></textarea>
+            <div id="mem-preview" class="md-preview" aria-label="Markdown 预览"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ═══════════════ 知识库 ═══════════════ -->
+    <section id="page-knowledge" class="page hidden">
+      <div class="toolbar">
+        <div class="toolbar-title">知识库 · <span class="muted" id="kb-ws-label">—</span></div>
+        <p class="page-hint" id="hint-knowledge">知识库目录</p>
+        <div class="toolbar-actions">
+          <span id="kb-dirty" class="status saved">已保存</span>
+          <div class="shortcut-row" id="kb-shortcuts"></div>
+          <div class="file-actions" id="kb-file-actions">
+            <button type="button" id="kb-new-file" class="btn ghost sm">+ 文件</button>
+            <button type="button" id="kb-new-dir" class="btn ghost sm">+ 文件夹</button>
+            <button type="button" id="kb-rename" class="btn ghost sm" disabled>重命名</button>
+            <button type="button" id="kb-delete" class="btn danger sm" disabled>删除</button>
+          </div>
+          <div class="mode-switch" id="kb-mode-switch" role="tablist" aria-label="显示模式">
+            <button type="button" class="mode-btn active" data-mode="edit" data-kind="knowledge">编辑</button>
+            <button type="button" class="mode-btn" data-mode="preview" data-kind="knowledge">预览</button>
+            <button type="button" class="mode-btn" data-mode="split" data-kind="knowledge">分栏</button>
+          </div>
+          <button type="button" id="kb-reload" class="btn ghost sm">刷新</button>
+          <button type="button" id="kb-save" class="btn primary sm" disabled>保存</button>
+        </div>
+      </div>
+      <div class="split">
+        <aside class="side">
+          <div class="side-head">目录</div>
+          <div id="kb-tree" class="side-list file-tree"></div>
+        </aside>
+        <section class="content" id="kb-empty">
+          <div class="empty">
+            <p>选择左侧文件开始编辑</p>
+          </div>
+        </section>
+        <section class="content editor-pane hidden" id="kb-editor">
+          <div class="content-head">
+            <h2 id="kb-title">—</h2>
+          </div>
+          <div class="hint-block" id="kb-meta"></div>
+          <div class="doc-view mode-edit" id="kb-view">
+            <textarea id="kb-content" class="editor-textarea" rows="24" disabled></textarea>
+            <div id="kb-preview" class="md-preview" aria-label="Markdown 预览"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ═══════════════ 工作区（仅设定） ═══════════════ -->
+    <section id="page-workspaces" class="page hidden">
+      <div class="toolbar">
+        <div class="toolbar-title">工作区 · 路径映射设定</div>
+        <p class="page-hint" id="hint-workspaces">root 与 map 路径映射</p>
+        <div class="toolbar-actions">
+          <span id="ws-dirty" class="status saved">已保存</span>
+          <button type="button" id="ws-bootstrap" class="btn ghost sm" title="一键创建本机 lab 目录并写好 memory/knowledge 映射">一键创建 lab</button>
+          <button type="button" id="ws-new" class="btn ghost sm">+ 工作区</button>
+          <button type="button" id="ws-save-one" class="btn primary sm">保存</button>
+        </div>
+      </div>
+      <div class="split">
+        <aside class="side">
+          <div class="side-head">已配置</div>
+          <div id="ws-list" class="side-list"></div>
+          <div class="side-head" style="margin-top:12px">建议加入</div>
+          <div id="ws-suggestions" class="side-list"></div>
+        </aside>
+        <section class="content" id="ws-empty">
+          <div class="empty empty-fallback">
+            <p class="empty-kicker">在这里设置文件夹对应关系</p>
+            <p class="empty-title">从左侧选一个，或点「+ 工作区」</p>
+            <p class="empty-desc"><strong>这页做什么：</strong>指定本机某个大文件夹（根路径），再用映射告诉程序：里面哪个子文件夹是记忆、哪个是知识库。</p>
+            <ul class="empty-list">
+              <li><strong>Pi 标准目录</strong>已内置，管模型/子代理等，一般不用删</li>
+              <li>要用记忆/知识库：点「+ 工作区」→ 填根路径 → 映射里写 <code>"memory":"memory"</code> 等 → 保存</li>
+              <li>映射值是相对路径（相对根路径），不要写盘符绝对路径</li>
+              <li>左边「建议」是空的也正常，手动添加即可</li>
+            </ul>
+            <p class="page-hint-inline">打开某个工作区后，页面上有「怎么映射？」折叠说明</p>
+          </div>
+        </section>
+        <section class="content hidden" id="ws-editor">
+          <div class="content-head">
+            <h2 id="ws-title">—</h2>
+            <div class="content-actions">
+              <button type="button" id="ws-delete" class="btn danger sm">删除</button>
+            </div>
+          </div>
+          <div class="hint-block" id="ws-meta"></div>
+
+          <details class="howto-map" id="ws-howto-map" open>
+            <summary>怎么映射？（必读）</summary>
+            <div class="howto-map-body">
+              <p><strong>一句话：</strong>「根路径」= 本机上的大文件夹；「映射」= 告诉程序里面哪一格是记忆、哪一格是知识库。</p>
+              <ol>
+                <li><strong>根路径</strong>：填真实存在的目录，例如 <code>D:/my-pi-lab</code> 或 <code>~/Documents/pi-lab</code>。</li>
+                <li>在这个目录下建子文件夹（若还没有）：例如 <code>memory</code>、<code>knowledge</code>。</li>
+                <li><strong>映射</strong>框里写 JSON：键是用途，值是<strong>相对根路径</strong>的子目录名（不要写盘符绝对路径）。</li>
+                <li>点右上角<strong>保存</strong>。下方「映射状态」应显示「存在」。</li>
+                <li>再打开顶栏「记忆」「知识库」——应能看到对应文件夹里的文件。</li>
+              </ol>
+              <p class="howto-map-example-label">最小示例（可复制后改路径）</p>
+              <pre class="howto-map-pre" id="ws-map-example">{
+  "memory": "memory",
+  "knowledge": "knowledge"
+}</pre>
+              <p class="page-hint-inline">含义：根路径/memory → 记忆页；根路径/knowledge → 知识库页。子目录叫别的名字也可以，例如 <code>"memory": "notes"</code> 表示用 notes 当记忆。</p>
+              <p class="page-hint-inline">Pi 标准目录一般只映射 agents/skills，不必硬加 memory。需要笔记时另加一个你自己的工作区即可。</p>
+            </div>
+          </details>
+
+          <div class="block-lite" id="ws-features-box" style="margin-bottom:14px">
+            <div class="block-head">
+              <h3>内容页开关</h3>
+              <span class="muted">关掉后映射仍保留，只是记忆/知识库页显示「未启用」</span>
+            </div>
+            <div class="feature-toggles">
+              <label class="check feature-toggle">
+                <input type="checkbox" id="feat-memory" checked>
+                <span>启用「记忆」页</span>
+              </label>
+              <label class="check feature-toggle">
+                <input type="checkbox" id="feat-knowledge" checked>
+                <span>启用「知识库」页</span>
+              </label>
+              <button type="button" id="feat-save" class="btn primary sm">保存开关</button>
+            </div>
+            <p class="page-hint-inline" id="feat-status" style="margin-top:8px">开关写入配置，方便自测；与下方「映射」是两件事</p>
+          </div>
+          <form id="ws-form" class="fields" autocomplete="off">
+            <div class="grid-2">
+              <label>ID（英文标识，保存后尽量别乱改）
+                <input id="ws-id" spellcheck="false" placeholder="my-lab">
+              </label>
+              <label>显示名称
+                <input id="ws-name" spellcheck="false" placeholder="我的工作区">
+              </label>
+            </div>
+            <label>根路径（本机大文件夹的完整路径）
+              <input id="ws-root" spellcheck="false" placeholder="D:/my-pi-lab 或 ~/Documents/pi-lab">
+            </label>
+
+            <div class="block-lite" id="ws-map-form-box">
+              <div class="block-head">
+                <h3>映射（表单）</h3>
+                <span class="muted">常用项；高级可改下方 JSON</span>
+              </div>
+              <div class="grid-2">
+                <label>记忆 memory → 子文件夹
+                  <input id="ws-map-memory" spellcheck="false" placeholder="memory">
+                </label>
+                <label>知识库 knowledge → 子文件夹
+                  <input id="ws-map-knowledge" spellcheck="false" placeholder="knowledge">
+                </label>
+              </div>
+              <div class="grid-2" style="margin-top:8px">
+                <label>tools（可选）
+                  <input id="ws-map-tools" spellcheck="false" placeholder="tools">
+                </label>
+                <label>docs（可选）
+                  <input id="ws-map-docs" spellcheck="false" placeholder="docs">
+                </label>
+              </div>
+              <p class="page-hint-inline" style="margin-top:8px">值是相对根路径的目录名。改表单会同步 JSON；改 JSON 失焦后回填表单。</p>
+            </div>
+
+            <label>映射 JSON（高级）
+              <span class="hint">用途 → 相对路径；不要写盘符绝对路径</span>
+              <textarea id="ws-map" class="mono" rows="8" placeholder='{
+  "memory": "memory",
+  "knowledge": "knowledge"
+}'></textarea>
+            </label>
+            <div class="block-lite">
+              <div class="block-head">
+                <h3>映射状态</h3>
+                <span class="muted">保存后看这里：存在=文件夹找得到</span>
+              </div>
+              <div id="ws-mapped" class="remote-list" style="max-height:220px"></div>
+            </div>
+          </form>
+        </section>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 帮助面板 -->
+  <div id="help-panel" class="help-panel hidden" role="dialog" aria-label="帮助">
+    <div class="help-panel-head">
+      <h3>页面速览</h3>
+      <button type="button" id="help-close" class="btn ghost sm">关闭</button>
+    </div>
+    <div class="help-list" id="help-list">
+      <div class="help-item"><strong>怎么理解</strong><span>先配「模型」就能用大部分功能。记忆/知识库/识图是附加能力，没配会写明原因，不会锁死其它页。</span></div>
+      <div class="help-item"><strong>模型</strong><span>填接口和密钥，管理模型，设默认项</span></div>
+      <div class="help-item"><strong>子代理</strong><span>改各个子代理的设定；「工作流」是规则文档，要记忆文件夹才有</span></div>
+      <div class="help-item"><strong>识图</strong><span>要先装 OpenVL；没装只影响本页</span></div>
+      <div class="help-item"><strong>提示词</strong><span>改 Pi 总说明和模板，可预览</span></div>
+      <div class="help-item"><strong>记忆 / 知识库</strong><span>在网页里改对应文件夹里的文档；需先在「工作区」指定文件夹</span></div>
+      <div class="help-item"><strong>Skills / 插件</strong><span>开关技能、管理扩展列表</span></div>
+      <div class="help-item"><strong>工作区</strong><span>告诉程序：本机哪个文件夹、里面哪块是记忆/知识库</span></div>
+    </div>
+    <div class="help-actions">
+      <button type="button" id="help-replay" class="btn ghost sm">重新看引导</button>
+    </div>
+  </div>
+
+  <!-- 首访引导 -->
+  <div id="onboard-overlay" class="onboard-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="onboard-title">
+    <div class="onboard-card">
+      <div class="onboard-steps" id="onboard-steps" aria-hidden="true"></div>
+      <div class="onboard-kicker" id="onboard-kicker">引导 1 / 5</div>
+      <h2 id="onboard-title">欢迎使用 Pi Manager</h2>
+      <p id="onboard-body">用几步快速了解如何配置模型、子代理与工作区映射。</p>
+      <div class="onboard-actions">
+        <button type="button" id="onboard-skip" class="btn ghost sm">跳过</button>
+        <span class="spacer"></span>
+        <button type="button" id="onboard-prev" class="btn ghost sm hidden">上一步</button>
+        <button type="button" id="onboard-next" class="btn primary sm">下一步</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/vendor/lucide.min.js"></script>
+  <script src="/marked.min.js"></script>
+  <script src="/diff-util.js"></script>
+  <script src="/app.js"></script>
+  <script src="/console-ui.js"></script>
+  <script src="/content-pages.js"></script>
+  <script src="/dash-sessions.js?v=no-jump-1"></script>
+  <script src="/usage-ui.js"></script>
+  <script src="/runtime-ui.js"></script>
+  <script src="/ops-ui.js"></script>
+  <script src="/trash-ui.js"></script>
+  <script src="/nav-icons.js"></script>
+  <script src="/chat-ui.js?v=send-1"></script>
+</body>
+</html>

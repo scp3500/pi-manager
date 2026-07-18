@@ -1,0 +1,31 @@
+# runtime
+logs/
+*.log
+npm-debug.log*
+
+# local / OS
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.idea/
+.vscode/
+
+# env & secrets (never commit)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# backups / local dumps
+*.bak
+*.bak.*
+*.local.json
+
+# node (this project has zero deps, but keep safe)
+node_modules/
+
+# test / coverage leftovers
+coverage/
+.nyc_output/

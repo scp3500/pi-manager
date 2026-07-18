@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1280" height="600" viewBox="0 0 1280 600" role="img" aria-label="Pi Manager">
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="600" viewBox="0 0 1280 600" role="img" aria-label="Pi Manager">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0.15" y2="1">
       <stop offset="0%" stop-color="#0a0e14"/>
@@ -129,7 +129,7 @@
     <text class="f" x="56" y="34" fill="#e7edf5" font-size="15" font-weight="700">Pi Manager</text>
     <text class="f" x="1140" y="34" text-anchor="end" fill="#5c6a7c" font-size="12">localhost:3001</text>
 
-    <!-- clickable tabs -->
+    <!-- nav tabs (visual) -->
     <g class="f" font-size="12.5">
       <!-- pills behind -->
       <rect class="tab-pill pill-dash"  x="190" y="13" width="52" height="28" rx="8" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
@@ -138,21 +138,17 @@
       <rect class="tab-pill pill-usage" x="494" y="13" width="52" height="28" rx="8" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
 
       
-        <rect x="190" y="10" width="52" height="34" fill="transparent"/>
         <text class="tab-label-off lab-dash" x="216" y="32" text-anchor="middle">总览</text>
       
       
-        <rect x="248" y="10" width="52" height="34" fill="transparent"/>
         <text class="tab-label-off lab-run" x="274" y="32" text-anchor="middle">运行</text>
       
       
-        <rect x="306" y="10" width="52" height="34" fill="transparent"/>
         <text class="tab-label-off lab-model" x="332" y="32" text-anchor="middle">模型</text>
       
       <text class="tab-label-off" x="396" y="32" text-anchor="middle" fill="#8b98a9">子代理</text>
       <text class="tab-label-off" x="462" y="32" text-anchor="middle" fill="#8b98a9">记忆</text>
       
-        <rect x="494" y="10" width="52" height="34" fill="transparent"/>
         <text class="tab-label-off lab-usage" x="520" y="32" text-anchor="middle">用量</text>
       
       <text class="tab-label-off" x="578" y="32" text-anchor="middle" fill="#8b98a9">搜索</text>
@@ -422,12 +418,12 @@
       </g>
     </g>
 
-    <!-- clickable dots -->
+    <!-- dots -->
     <g transform="translate(540,480)">
-      <circle class="dot dot-1" cx="0" cy="0" r="6" fill="#5c6a7c"/><rect x="-10" y="-12" width="20" height="24" fill="transparent"/>
-      <circle class="dot dot-2" cx="28" cy="0" r="6" fill="#5c6a7c"/><rect x="18" y="-12" width="20" height="24" fill="transparent"/>
-      <circle class="dot dot-3" cx="56" cy="0" r="6" fill="#5c6a7c"/><rect x="46" y="-12" width="20" height="24" fill="transparent"/>
-      <circle class="dot dot-4" cx="84" cy="0" r="6" fill="#5c6a7c"/><rect x="74" y="-12" width="20" height="24" fill="transparent"/>
+      <circle class="dot dot-1" cx="0" cy="0" r="6" fill="#5c6a7c"/>
+      <circle class="dot dot-2" cx="28" cy="0" r="6" fill="#5c6a7c"/>
+      <circle class="dot dot-3" cx="56" cy="0" r="6" fill="#5c6a7c"/>
+      <circle class="dot dot-4" cx="84" cy="0" r="6" fill="#5c6a7c"/>
     </g>
   </g>
 </svg>

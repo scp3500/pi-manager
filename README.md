@@ -1,177 +1,250 @@
+<div align="center">
+
+<img src="docs/assets/banner.svg" alt="Pi Manager" width="100%"/>
+
 # Pi Manager
 
-本地 Web 控制台，用于管理 [Pi Coding Agent](https://github.com/badlogic/pi-mono) 的本机配置与资源。
+### 给 [Pi Coding Agent](https://github.com/badlogic/pi-mono) 的本地 Web 控制台
 
-浏览器打开即可编辑模型、子代理、提示词、会话与用量；配合终端里的 Pi 一起使用。
+**模型 · 子代理 · 运行态 · 用量 · 会话 · 识图 · 工作区**  
+零 npm 依赖 · 开箱即用 · `localhost:3001`
 
-![Node ≥18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
-![npm deps](https://img.shields.io/badge/npm%20deps-0-lightgrey)
-![port](https://img.shields.io/badge/default%20port-3001-blue)
+<br/>
 
----
+[![Node](https://img.shields.io/badge/Node-%3E%3D18-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Deps](https://img.shields.io/badge/npm_deps-0-111827?style=for-the-badge&logo=npm&logoColor=white)](./package.json)
+[![Port](https://img.shields.io/badge/port-3001-0ea5e9?style=for-the-badge&logo=googlechrome&logoColor=white)](http://localhost:3001)
+[![License](https://img.shields.io/badge/license-MIT-8b5cf6?style=for-the-badge)](./LICENSE)
 
-## 功能
+<br/>
 
-| 模块 | 说明 |
-|------|------|
-| **总览** | 默认模型、就绪状态、今日用量、缓存命中、临时文件清理 |
-| **运行** | 从 session jsonl 推断当前任务 / 工具 / 子代理状态 |
-| **模型** | 编辑 `models.json`、默认模型、拉取远程模型列表 |
-| **子代理** | 管理 `agents/*.md`，工具权限与 Prompt |
-| **用量** | 汇总 sessions 费用与 token（`usage.cost.total` 原值累加，显示 ¥） |
-| **会话** | 浏览 / 搜索 / 清理 `sessions/**/*.jsonl` |
-| **提示词 · Skills · 插件** | `AGENTS.md`、skills 开关、packages / extensions |
-| **工作区** | 映射本机目录为记忆 / 知识库等内容根 |
-| **识图** | 管理 [OpenVL](https://github.com/scp3500/openvl) 配置（可选） |
-| **教程** | 安装说明、外链，以及白名单一键安装 |
-| **内嵌助手** | 控制台内聊天与管理类工具（写操作需确认） |
-| **搜索 · 健康检查 · 导出** | 跨资源检索、配置体检、脱敏 JSON 备份 |
-
-设计要点：
-
-- 零框架：Node 内置 `http` + 静态前端，无需打包
-- 读写本机 `~/.pi/agent`（可用环境变量覆盖）
-- 可选组件缺失时降级，核心页仍可用
-- 路径使用 `~/` 展开，避免写死用户名绝对路径
-
----
-
-## 相关项目与依赖
-
-```
-        Pi Manager (本仓库)  ·  localhost:3001
-                 │
-     ┌───────────┼───────────┐
-     ▼           ▼           ▼
- Pi Coding    工作区目录    OpenVL（可选）
- Agent 配置   memory/kb    @scp3500/openvl
+```bash
+git clone https://github.com/scp3500/pi-manager.git
+cd pi-manager && npm start
+# → http://localhost:3001
 ```
 
-| 组件 | 关系 | 缺失时 |
-|------|------|--------|
-| **[Pi Coding Agent](https://github.com/badlogic/pi-mono)** | 数据面依赖：读写 `models.json`、`settings.json`、`agents/`、`sessions/` 等 | 页面可开，几乎无配置可管 |
-| **Node.js ≥ 18** | 运行面依赖 | 无法启动 |
-| **[OpenVL](https://github.com/scp3500/openvl)**（`@scp3500/openvl`） | 可选识图 | 识图页提示安装，其它功能正常 |
-| **工作区映射** | 可选：记忆 / 知识库 / 工作流文档 | 对应页为空状态，核心仍可用 |
-| **Pi packages / extensions / skills** | 由 Pi 安装；本控制台提供列表编辑与教程一键装 npm 包 | 列表为空或仅显示已有项 |
+<sub>Windows 也可双击 `start.bat`（默认后台运行，日志在 `logs/`）</sub>
 
-控制台自身 **npm dependencies 为 0**。界面中的「插件 / Skills」对应 Pi 的 `settings.json` 配置，以及本机已安装的扩展。
+</div>
 
 ---
 
-## 快速开始
+## ✨ 为什么用它
 
-### 1. 准备 Pi
+<table>
+<tr>
+<td width="33%" valign="top">
 
-确保本机可运行 Pi，并存在配置目录（默认）：
+### 🖥️ 一屏掌控
+默认模型、今日费用、缓存命中、会话体积、临时文件清理——总览页一次看完。
+
+</td>
+<td width="33%" valign="top">
+
+### ⚡ 实时运行态
+从 session jsonl 推断任务进度、工具调用、并行/串行与子代理状态。
+
+</td>
+<td width="33%" valign="top">
+
+### 🧩 可降级扩展
+OpenVL 识图、记忆/知识库、Pi 插件都是可选；缺什么不拖垮核心页。
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🧭 功能全景
+
+| | 模块 | 你能做什么 |
+|:--:|:--|:--|
+| 📊 | **总览** | 默认模型直达管理、用量 KPI、健康检查、配置导出 |
+| 🟢 | **运行** | 在干活 / 在想 / 已退出 · 进程探测防假运行 |
+| 🧠 | **模型** | 供应商 CRUD、远程拉模型、默认 Provider/Model |
+| 🤖 | **子代理** | `agents/*.md` 编辑、工具权限预设、工作流规范 |
+| 💸 | **用量** | token / 费用趋势，与状态栏同一套 `cost.total` 口径 |
+| 💬 | **会话** | 搜索、按天清理、回收站还原 |
+| 👁️ | **识图** | [OpenVL](https://github.com/scp3500/openvl) profiles · 一键安装 |
+| 📦 | **插件** | packages / extensions 列表 + 教程页白名单安装 |
+| 🗺️ | **工作区** | 映射 memory / knowledge 到本机任意目录 |
+| 📖 | **教程** | 应用内安装说明、外链、一键创建示例 agent |
+| 🪄 | **内嵌助手** | 控制台侧栏聊天 · 写操作二次确认 |
+
+---
+
+## 🏗 架构
 
 ```text
-~/.pi/agent/          # Windows: %USERPROFILE%\.pi\agent\
-  models.json
-  settings.json
-  agents/
-  sessions/
+                 ┌──────────────────────────┐
+                 │     Pi Manager :3001     │
+                 │  Node http + static UI   │
+                 └────────────┬─────────────┘
+                              │ 读写 / 扫描
+           ┌──────────────────┼──────────────────┐
+           ▼                  ▼                  ▼
+   ~/.pi/agent/*        工作区映射目录      OpenVL（可选）
+   models settings      memory / knowledge  @scp3500/openvl
+   agents sessions      via pi-manager.json  profiles + CLI
 ```
 
-### 2. 启动
+| 依赖 | 角色 |
+|------|------|
+| **[Pi](https://github.com/badlogic/pi-mono)** | 数据面——配置与会话都在 `~/.pi/agent` |
+| **Node ≥ 18** | 运行面——本仓库 **0** 个 npm production 依赖 |
+| **[OpenVL](https://github.com/scp3500/openvl)** | 可选识图；教程页可一键 `npm i -g` |
+| **工作区** | 可选内容根；不配也能用模型/子代理/用量 |
+
+---
+
+## 🚀 快速开始
+
+<details open>
+<summary><b>① 先有 Pi 配置目录</b></summary>
+
+<br/>
+
+```text
+~/.pi/agent/
+├── models.json
+├── settings.json
+├── agents/
+└── sessions/
+```
+
+Windows：`%USERPROFILE%\.pi\agent\`
+
+</details>
+
+<details open>
+<summary><b>② 启动控制台</b></summary>
+
+<br/>
 
 ```bash
 git clone https://github.com/scp3500/pi-manager.git
 cd pi-manager
 npm start
-# Windows 也可双击 start.bat（默认后台，日志在 logs/）
 ```
 
-打开：http://localhost:3001  
+| 动作 | 方式 |
+|------|------|
+| 打开 | http://localhost:3001 |
+| 后台启动 | `start.bat` |
+| 停止 | `stop.bat` |
 
-停止：`stop.bat`，或结束占用端口的进程。
+</details>
 
-### 3. 可选：OpenVL 识图
+<details>
+<summary><b>③ 可选：OpenVL 识图</b></summary>
+
+<br/>
 
 ```bash
 npm install -g @scp3500/openvl
 ```
 
-或在控制台 **教程 → 识图** 使用一键安装。
+或打开控制台 **更多 → 教程 → 识图 → 一键安装**。
 
-### 4. 可选：记忆 / 知识库
+</details>
 
-1. **工作区** → 添加本机根目录  
-2. 映射示例：`{ "memory": "memory", "knowledge": "knowledge" }`  
+<details>
+<summary><b>④ 可选：记忆 / 知识库映射</b></summary>
+
+<br/>
+
+1. 进入 **工作区** → 添加本机根目录  
+2. 映射示例：
+
+```json
+{
+  "memory": "memory",
+  "knowledge": "knowledge"
+}
+```
+
 3. 打开「记忆 / 知识库」页  
 
-更细的操作说明见应用内 **更多 → 教程**。
+更多说明：**更多 → 教程**。
+
+</details>
 
 ---
 
-## 环境变量
+## 🎛 环境变量
 
-| 变量 | 默认 | 含义 |
+| 变量 | 默认 | 说明 |
 |------|------|------|
-| `PORT` | `3001` | HTTP 端口 |
+| `PORT` | `3001` | 服务端口 |
 | `PI_AGENT_DIR` | `~/.pi/agent` | Pi 配置根 |
-| `PI_MANAGER_CONFIG` | `$PI_AGENT_DIR/pi-manager.json` | 本控制台配置（工作区等） |
-| `OPENVL_PKG_DIR` | 自动探测 | OpenVL 安装目录 |
+| `PI_MANAGER_CONFIG` | `$PI_AGENT_DIR/pi-manager.json` | 控制台自身配置 |
+| `OPENVL_PKG_DIR` | 自动探测 | OpenVL 包目录 |
 
 ---
 
-## 安全
+## 🔒 安全要点
 
-- 默认本机访问；请勿将端口裸暴露到公网
-- 导出配置会脱敏 API Key；不要把含密钥的 `models.json` / `.env` 提交到 Git
-- 写操作会修改本机 Pi 配置；重要文件有滚动 `.bak`，仍建议自行备份
-- 教程页一键安装仅允许白名单命令（如 `npm i -g @scp3500/openvl`、`pi install npm:…`）
-- 第三方 Pi 包拥有本机完整权限，安装前请阅读来源与源码
+> [!IMPORTANT]
+> 本控制台默认服务本机。**不要把端口裸暴露到公网。**
+
+- 导出 JSON 会脱敏 API Key  
+- 写操作修改真实 Pi 配置（带滚动 `.bak`）  
+- 教程「一键安装」仅白名单命令：  
+  - `npm install -g @scp3500/openvl`  
+  - `pi install npm:…`  
+  - 创建本地示例子代理文件  
+- 第三方 Pi 包拥有完整本机权限——装前看源码  
 
 ---
 
-## 项目结构
+## 📁 仓库结构
 
 ```text
 pi-manager/
-├── server.js          # HTTP + /api/*
-├── lib/               # 业务模块
-├── public/            # 静态前端（hash 路由）
-├── start.bat          # Windows 启动（默认后台）
-├── stop.bat
-├── package.json       # 无 dependencies
+├── server.js            # HTTP + /api/*
+├── lib/                 # 业务：models / usage / runtime / install …
+├── public/              # 静态前端（hash 路由，无构建）
+├── start.bat / stop.bat
 ├── docs/
-│   ├── DEVELOPMENT.md # 开发 / API / 约束（原长 README）
-│   └── UI.md          # UI 交接说明
+│   ├── assets/          # README 视觉资源
+│   ├── DEVELOPMENT.md   # API · 路由 · 约束
+│   └── UI.md
 └── test/
 ```
 
----
-
-## 开发
-
 ```bash
-npm start          # 启动
-npm test           # node --test
+npm start    # 启动
+npm test     # node --test
 ```
 
-静态资源改完刷新浏览器（建议 Ctrl+F5）；改 `server.js` / `lib/*` 需重启进程。
-
-完整 API 列表、路由表与行为约束见 [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md)。
+静态资源 Ctrl+F5；改 `server.js` / `lib/*` 需重启。
 
 ---
 
-## 已知限制
+## 📌 已知限制
 
-- **运行页**基于 jsonl 推断；进程退出后会尽量标为已退出，多窗口时无法精确对应 PID↔session
-- **用量**首次全量扫描 sessions 可能较慢，之后有磁盘/内存缓存
-- **内嵌助手**会话与 Pi 主 session 隔离，不计入 Pi sessions 用量文件
-
----
-
-## 致谢
-
-- [Pi Coding Agent](https://github.com/badlogic/pi-mono)
-- [OpenVL](https://github.com/scp3500/openvl)
-- 用量解析参考社区 session 统计工具（见 `lib/usage.js` 文件头）
+| 点 | 说明 |
+|----|------|
+| 运行页 | jsonl 推断 + 进程探测；多窗口难精确 PID↔session |
+| 用量 | 首次全量扫 sessions 可能慢，之后磁盘/内存缓存 |
+| 内嵌助手 | 与 Pi 主 session 隔离，不进 sessions 用量文件 |
 
 ---
 
-## License
+## 🙏 致谢
 
-[MIT](./LICENSE)
+- [Pi Coding Agent](https://github.com/badlogic/pi-mono)  
+- [OpenVL](https://github.com/scp3500/openvl)  
+- 用量解析参考社区 session 统计工具（见 `lib/usage.js` 头注释）
+
+---
+
+<div align="center">
+
+**[文档](./docs/DEVELOPMENT.md)** · **[OpenVL](https://github.com/scp3500/openvl)** · **[MIT License](./LICENSE)**
+
+<sub>Built for people who live in the terminal — and still want a dashboard.</sub>
+
+</div>

@@ -137,24 +137,24 @@
       <rect class="tab-pill pill-model" x="306" y="13" width="52" height="28" rx="8" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
       <rect class="tab-pill pill-usage" x="494" y="13" width="52" height="28" rx="8" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
 
-      <a class="tab-hit" href="#dashboard" xlink:href="#dashboard">
+      
         <rect x="190" y="10" width="52" height="34" fill="transparent"/>
         <text class="tab-label-off lab-dash" x="216" y="32" text-anchor="middle">总览</text>
-      </a>
-      <a class="tab-hit" href="#runtime" xlink:href="#runtime">
+      
+      
         <rect x="248" y="10" width="52" height="34" fill="transparent"/>
         <text class="tab-label-off lab-run" x="274" y="32" text-anchor="middle">运行</text>
-      </a>
-      <a class="tab-hit" href="#models" xlink:href="#models">
+      
+      
         <rect x="306" y="10" width="52" height="34" fill="transparent"/>
         <text class="tab-label-off lab-model" x="332" y="32" text-anchor="middle">模型</text>
-      </a>
+      
       <text class="tab-label-off" x="396" y="32" text-anchor="middle" fill="#8b98a9">子代理</text>
       <text class="tab-label-off" x="462" y="32" text-anchor="middle" fill="#8b98a9">记忆</text>
-      <a class="tab-hit" href="#usage" xlink:href="#usage">
+      
         <rect x="494" y="10" width="52" height="34" fill="transparent"/>
         <text class="tab-label-off lab-usage" x="520" y="32" text-anchor="middle">用量</text>
-      </a>
+      
       <text class="tab-label-off" x="578" y="32" text-anchor="middle" fill="#8b98a9">搜索</text>
       <text x="636" y="32" text-anchor="middle" fill="#5c6a7c">更多</text>
     </g>
@@ -424,12 +424,10 @@
 
     <!-- clickable dots -->
     <g transform="translate(540,480)">
-      <a href="#dashboard" xlink:href="#dashboard"><circle class="dot dot-1" cx="0" cy="0" r="6" fill="#5c6a7c"/><rect x="-10" y="-12" width="20" height="24" fill="transparent"/></a>
-      <a href="#runtime" xlink:href="#runtime"><circle class="dot dot-2" cx="28" cy="0" r="6" fill="#5c6a7c"/><rect x="18" y="-12" width="20" height="24" fill="transparent"/></a>
-      <a href="#models" xlink:href="#models"><circle class="dot dot-3" cx="56" cy="0" r="6" fill="#5c6a7c"/><rect x="46" y="-12" width="20" height="24" fill="transparent"/></a>
-      <a href="#usage" xlink:href="#usage"><circle class="dot dot-4" cx="84" cy="0" r="6" fill="#5c6a7c"/><rect x="74" y="-12" width="20" height="24" fill="transparent"/></a>
+      <circle class="dot dot-1" cx="0" cy="0" r="6" fill="#5c6a7c"/><rect x="-10" y="-12" width="20" height="24" fill="transparent"/>
+      <circle class="dot dot-2" cx="28" cy="0" r="6" fill="#5c6a7c"/><rect x="18" y="-12" width="20" height="24" fill="transparent"/>
+      <circle class="dot dot-3" cx="56" cy="0" r="6" fill="#5c6a7c"/><rect x="46" y="-12" width="20" height="24" fill="transparent"/>
+      <circle class="dot dot-4" cx="84" cy="0" r="6" fill="#5c6a7c"/><rect x="74" y="-12" width="20" height="24" fill="transparent"/>
     </g>
-
-    <text class="f hint" x="584" y="508" text-anchor="middle">点击顶栏「总览 / 运行 / 模型 / 用量」或底部圆点切换 · 无点击时自动轮播</text>
   </g>
 </svg>

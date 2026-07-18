@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-label="Pi Manager">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0%" stop-color="#0a0e14"/>
+      <stop offset="55%" stop-color="#0f141c"/>
+      <stop offset="100%" stop-color="#151c27"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5aa2ff"/>
+      <stop offset="100%" stop-color="#3d7fd6"/>
+    </linearGradient>
+    <linearGradient id="glowLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#5aa2ff" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#5aa2ff" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#3d7fd6" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="orb" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#5aa2ff" stop-opacity="0.28"/>
+      <stop offset="70%" stop-color="#3d7fd6" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="20"/>
+    </filter>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="20" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <circle cx="980" cy="80" r="240" fill="url(#orb)" filter="url(#soft)"/>
+  <circle cx="180" cy="560" r="200" fill="url(#orb)" filter="url(#soft)"/>
+  <rect x="0" y="318" width="1280" height="2" fill="url(#glowLine)" opacity="0.7"/>
+
+  <!-- left brand -->
+  <g transform="translate(96,168)" font-family="Segoe UI, Microsoft YaHei, system-ui, sans-serif">
+    <!-- logo mark -->
+    <g transform="translate(0,0)">
+      <rect width="72" height="72" rx="18" fill="#0f141c" stroke="#243041"/>
+      <g transform="translate(8,8) scale(0.07)">
+        <path fill="#5aa2ff" fill-rule="evenodd" d="M165.29 165.29 H517.36 V400 H400 V517.36 H282.65 V634.72 H165.29 Z M282.65 282.65 V400 H400 V282.65 Z"/>
+        <path fill="#e7edf5" d="M517.36 400 H634.72 V634.72 H517.36 Z"/>
+      </g>
+    </g>
+
+    <text x="92" y="32" fill="#5c6a7c" font-size="16" font-weight="700" letter-spacing="3">LOCAL WEB CONSOLE</text>
+    <text x="92" y="78" fill="#e7edf5" font-size="56" font-weight="800" letter-spacing="-1.5">Pi Manager</text>
+    <text x="0" y="130" fill="#8b98a9" font-size="20">Models · Agents · Runtime · Usage · OpenVL</text>
+    <text x="0" y="164" fill="#5c6a7c" font-size="16">for Pi Coding Agent · localhost:3001 · 0 npm deps</text>
+
+    <g transform="translate(0,198)">
+      <rect width="110" height="36" rx="18" fill="url(#accent)"/>
+      <text x="55" y="23" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="700">:3001</text>
+      <rect x="122" y="0" width="128" height="36" rx="18" fill="#0f141c" stroke="#243041"/>
+      <text x="186" y="23" text-anchor="middle" fill="#e7edf5" font-size="13" font-weight="650">Node ≥ 18</text>
+      <rect x="262" y="0" width="140" height="36" rx="18" fill="#0f141c" stroke="#243041"/>
+      <text x="332" y="23" text-anchor="middle" fill="#e7edf5" font-size="13" font-weight="650">MIT License</text>
+    </g>
+  </g>
+
+  <!-- right mini UI card -->
+  <g transform="translate(700,120)" filter="url(#shadow)" font-family="Segoe UI, Microsoft YaHei, system-ui, sans-serif">
+    <rect width="480" height="400" rx="18" fill="#0a0e14" stroke="#243041"/>
+    <rect width="480" height="48" rx="18" fill="#0f141c"/>
+    <rect y="30" width="480" height="18" fill="#0f141c"/>
+    <line x1="0" y1="48" x2="480" y2="48" stroke="#243041"/>
+    <circle cx="22" cy="24" r="5" fill="#f0556d"/>
+    <circle cx="40" cy="24" r="5" fill="#ffb454"/>
+    <circle cx="58" cy="24" r="5" fill="#3fb950"/>
+    <text x="80" y="28" fill="#8b98a9" font-size="13">Pi Manager · 总览</text>
+
+    <g transform="translate(20,68)">
+      <rect width="440" height="72" rx="12" fill="#0f141c" stroke="rgba(90,162,255,0.35)"/>
+      <rect width="440" height="72" rx="12" fill="rgba(90,162,255,0.08)"/>
+      <text x="16" y="28" fill="#5c6a7c" font-size="11" font-weight="700" letter-spacing="1">默认模型</text>
+      <text x="16" y="52" fill="#e7edf5" font-size="18" font-weight="750">provider / model-id</text>
+      <text x="410" y="42" text-anchor="end" fill="#5aa2ff" font-size="13" font-weight="650">管理 →</text>
+
+      <g transform="translate(0,88)">
+        <rect width="140" height="70" rx="12" fill="#151c27" stroke="rgba(90,162,255,0.28)"/>
+        <text x="12" y="26" fill="#5c6a7c" font-size="11">今日</text>
+        <text x="12" y="50" fill="#e7edf5" font-size="20" font-weight="750">¥12.40</text>
+        <rect x="150" width="140" height="70" rx="12" fill="#151c27" stroke="#243041"/>
+        <rect x="150" width="140" height="70" rx="12" fill="rgba(63,185,80,0.08)"/>
+        <text x="162" y="26" fill="#5c6a7c" font-size="11">缓存</text>
+        <text x="162" y="50" fill="#3fb950" font-size="20" font-weight="750">72%</text>
+        <rect x="300" width="140" height="70" rx="12" fill="#151c27" stroke="#243041"/>
+        <text x="312" y="26" fill="#5c6a7c" font-size="11">运行</text>
+        <text x="312" y="50" fill="#5aa2ff" font-size="18" font-weight="750">在干活</text>
+      </g>
+
+      <g transform="translate(0,176)">
+        <rect width="440" height="120" rx="12" fill="#0f141c" stroke="#243041"/>
+        <rect x="0" y="0" width="4" height="120" fill="#5aa2ff"/>
+        <circle cx="24" cy="28" r="5" fill="#5aa2ff"/>
+        <text x="40" y="32" fill="#5aa2ff" font-size="13" font-weight="650">在调工具</text>
+        <text x="40" y="56" fill="#e7edf5" font-size="14" font-weight="650">bash · 读取 sessions</text>
+        <rect x="24" y="78" width="392" height="8" rx="4" fill="#1b2431"/>
+        <rect x="24" y="78" width="260" height="8" rx="4" fill="url(#accent)"/>
+        <text x="24" y="106" fill="#5c6a7c" font-size="12">6 完成 · 1 进行中 · Pi 进程 1</text>
+      </g>
+    </g>
+  </g>
+</svg>

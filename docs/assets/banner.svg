@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="560" viewBox="0 0 1280 560" role="img" aria-label="Pi Manager">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1280" height="600" viewBox="0 0 1280 600" role="img" aria-label="Pi Manager">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0.15" y2="1">
       <stop offset="0%" stop-color="#0a0e14"/>
@@ -7,10 +7,6 @@
     <linearGradient id="modelGlow" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="rgba(90,162,255,0.16)"/>
       <stop offset="70%" stop-color="rgba(90,162,255,0)"/>
-    </linearGradient>
-    <linearGradient id="barFill" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#5aa2ff"/>
-      <stop offset="100%" stop-color="#3fb950"/>
     </linearGradient>
     <clipPath id="stageClip">
       <rect width="1168" height="404" x="0" y="0"/>
@@ -21,79 +17,105 @@
     <style><![CDATA[
       .f { font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif; }
       .m { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
-      /* base layer always visible; overlays cycle */
-      .ov {
+
+      /* ----- slides ----- */
+      .slide {
         opacity: 0;
-        animation: fadeSlide 16s infinite;
+        pointer-events: none;
       }
-      /* base dashboard 0–4s; overlays each hold ~4s */
-      .ov2 { animation-delay: 4s; }
-      .ov3 { animation-delay: 8s; }
-      .ov4 { animation-delay: 12s; }
-      /* hold base alone 0-4s, then each overlay 4s */
-      @keyframes fadeSlide {
-        0%   { opacity: 0; transform: translateX(28px); }
-        3%   { opacity: 1; transform: translateX(0); }
-        22%  { opacity: 1; transform: translateX(0); }
-        25%  { opacity: 0; transform: translateX(-28px); }
-        100% { opacity: 0; transform: translateX(-28px); }
+      /* default / autoplay when no :target */
+      svg:not(:has(.slide:target)) .slide-dashboard {
+        opacity: 1;
+        pointer-events: auto;
+        animation: none;
       }
-      /* dots: 4 segments of 4s */
-      .d { fill: #5c6a7c; }
-      .d1 { animation: blink1 16s infinite; }
-      .d2 { animation: blink2 16s infinite; }
-      .d3 { animation: blink3 16s infinite; }
-      .d4 { animation: blink4 16s infinite; }
-      @keyframes blink1 {
-        0%, 24.999% { fill: #5aa2ff; r: 5.5px; }
-        25%, 100% { fill: #5c6a7c; }
+      svg:not(:has(.slide:target)) .slide-runtime,
+      svg:not(:has(.slide:target)) .slide-models,
+      svg:not(:has(.slide:target)) .slide-usage {
+        animation: autoFade 16s infinite;
       }
-      @keyframes blink2 {
-        0%, 24.999% { fill: #5c6a7c; }
-        25%, 49.999% { fill: #5aa2ff; }
-        50%, 100% { fill: #5c6a7c; }
+      svg:not(:has(.slide:target)) .slide-runtime { animation-delay: 4s; }
+      svg:not(:has(.slide:target)) .slide-models  { animation-delay: 8s; }
+      svg:not(:has(.slide:target)) .slide-usage   { animation-delay: 12s; }
+
+      @keyframes autoFade {
+        0%   { opacity: 0; }
+        2%   { opacity: 1; pointer-events: auto; }
+        23%  { opacity: 1; pointer-events: auto; }
+        25%  { opacity: 0; pointer-events: none; }
+        100% { opacity: 0; pointer-events: none; }
       }
-      @keyframes blink3 {
-        0%, 49.999% { fill: #5c6a7c; }
-        50%, 74.999% { fill: #5aa2ff; }
-        75%, 100% { fill: #5c6a7c; }
+
+      /* click / hash selection wins */
+      .slide:target {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        animation: none !important;
       }
-      @keyframes blink4 {
-        0%, 74.999% { fill: #5c6a7c; }
-        75%, 99.999% { fill: #5aa2ff; }
-        100% { fill: #5c6a7c; }
+      svg:has(.slide:target) .slide-dashboard:not(:target) {
+        opacity: 0 !important;
+        pointer-events: none !important;
+        animation: none !important;
       }
-      .pill { opacity: 0; animation: pill 16s infinite; }
-      .p1 { animation-name: pill1; }
-      .p2 { animation-name: pill2; }
-      .p3 { animation-name: pill3; }
-      .p4 { animation-name: pill4; }
-      @keyframes pill1 {
+
+      /* tab pills */
+      .tab-hit { cursor: pointer; }
+      .tab-pill { opacity: 0; pointer-events: none; }
+      .tab-label-on { opacity: 0; pointer-events: none; fill: #e7edf5; font-weight: 650; }
+      .tab-label-off { fill: #8b98a9; font-weight: 600; }
+
+      /* autoplay pill highlight */
+      svg:not(:has(.slide:target)) .pill-dash  { animation: pillOn 16s infinite; }
+      svg:not(:has(.slide:target)) .pill-run   { animation: pillOn 16s infinite; animation-delay: 4s; }
+      svg:not(:has(.slide:target)) .pill-model { animation: pillOn 16s infinite; animation-delay: 8s; }
+      svg:not(:has(.slide:target)) .pill-usage { animation: pillOn 16s infinite; animation-delay: 12s; }
+      @keyframes pillOn {
         0%, 24.999% { opacity: 1; }
         25%, 100% { opacity: 0; }
       }
-      @keyframes pill2 {
-        0%, 24.999% { opacity: 0; }
-        25%, 49.999% { opacity: 1; }
-        50%, 100% { opacity: 0; }
+
+      /* selected pill via :target on slides — sibling control via has */
+      svg:has(#dashboard:target) .pill-dash,
+      svg:has(#runtime:target) .pill-run,
+      svg:has(#models:target) .pill-model,
+      svg:has(#usage:target) .pill-usage {
+        opacity: 1 !important;
+        animation: none !important;
       }
-      @keyframes pill3 {
-        0%, 49.999% { opacity: 0; }
-        50%, 74.999% { opacity: 1; }
-        75%, 100% { opacity: 0; }
+      svg:has(#dashboard:target) .lab-dash,
+      svg:has(#runtime:target) .lab-run,
+      svg:has(#models:target) .lab-model,
+      svg:has(#usage:target) .lab-usage {
+        fill: #e7edf5 !important;
+        font-weight: 650 !important;
       }
-      @keyframes pill4 {
-        0%, 74.999% { opacity: 0; }
-        75%, 99.999% { opacity: 1; }
-        100% { opacity: 0; }
+
+      /* dots */
+      .dot { fill: #5c6a7c; }
+      svg:not(:has(.slide:target)) .dot-1 { animation: dotOn 16s infinite; }
+      svg:not(:has(.slide:target)) .dot-2 { animation: dotOn 16s infinite; animation-delay: 4s; }
+      svg:not(:has(.slide:target)) .dot-3 { animation: dotOn 16s infinite; animation-delay: 8s; }
+      svg:not(:has(.slide:target)) .dot-4 { animation: dotOn 16s infinite; animation-delay: 12s; }
+      @keyframes dotOn {
+        0%, 24.999% { fill: #5aa2ff; }
+        25%, 100% { fill: #5c6a7c; }
       }
+      svg:has(#dashboard:target) .dot-1,
+      svg:has(#runtime:target) .dot-2,
+      svg:has(#models:target) .dot-3,
+      svg:has(#usage:target) .dot-4 {
+        fill: #5aa2ff !important;
+        animation: none !important;
+      }
+
+      .hint { fill: #5c6a7c; font-size: 11px; }
     ]]></style>
   </defs>
 
-  <rect width="1280" height="560" fill="url(#bg)"/>
+  <rect width="1280" height="600" fill="url(#bg)"/>
 
-  <g transform="translate(56,32)" filter="url(#shadow)">
-    <rect width="1168" height="480" rx="16" fill="#0a0e14" stroke="#243041"/>
+  <g transform="translate(56,28)" filter="url(#shadow)">
+    <rect width="1168" height="520" rx="16" fill="#0a0e14" stroke="#243041"/>
 
     <!-- header -->
     <rect width="1168" height="56" rx="16" fill="#0f141c"/>
@@ -107,32 +129,41 @@
     <text class="f" x="56" y="34" fill="#e7edf5" font-size="15" font-weight="700">Pi Manager</text>
     <text class="f" x="1140" y="34" text-anchor="end" fill="#5c6a7c" font-size="12">localhost:3001</text>
 
-    <!-- tabs -->
-    <g class="f" font-size="12.5" font-weight="600">
-      <text x="216" y="34" text-anchor="middle" fill="#8b98a9">总览</text>
-      <text x="274" y="34" text-anchor="middle" fill="#8b98a9">运行</text>
-      <text x="332" y="34" text-anchor="middle" fill="#8b98a9">模型</text>
-      <text x="396" y="34" text-anchor="middle" fill="#8b98a9">子代理</text>
-      <text x="462" y="34" text-anchor="middle" fill="#8b98a9">记忆</text>
-      <text x="520" y="34" text-anchor="middle" fill="#8b98a9">用量</text>
-      <text x="578" y="34" text-anchor="middle" fill="#8b98a9">搜索</text>
-      <text x="636" y="34" text-anchor="middle" fill="#5c6a7c">更多</text>
-    </g>
-    <!-- active pills (animated) -->
-    <rect class="pill p1" x="190" y="13" width="52" height="28" rx="8" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
-    <rect class="pill p2" x="248" y="13" width="52" height="28" rx="8" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
-    <rect class="pill p3" x="306" y="13" width="52" height="28" rx="8" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
-    <rect class="pill p4" x="494" y="13" width="52" height="28" rx="8" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
-    <g class="f" font-size="12.5" font-weight="650" fill="#e7edf5" pointer-events="none">
-      <text class="pill p1" x="216" y="32" text-anchor="middle">总览</text>
-      <text class="pill p2" x="274" y="32" text-anchor="middle">运行</text>
-      <text class="pill p3" x="332" y="32" text-anchor="middle">模型</text>
-      <text class="pill p4" x="520" y="32" text-anchor="middle">用量</text>
+    <!-- clickable tabs -->
+    <g class="f" font-size="12.5">
+      <!-- pills behind -->
+      <rect class="tab-pill pill-dash"  x="190" y="13" width="52" height="28" rx="8" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
+      <rect class="tab-pill pill-run"   x="248" y="13" width="52" height="28" rx="8" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
+      <rect class="tab-pill pill-model" x="306" y="13" width="52" height="28" rx="8" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
+      <rect class="tab-pill pill-usage" x="494" y="13" width="52" height="28" rx="8" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
+
+      <a class="tab-hit" href="#dashboard" xlink:href="#dashboard">
+        <rect x="190" y="10" width="52" height="34" fill="transparent"/>
+        <text class="tab-label-off lab-dash" x="216" y="32" text-anchor="middle">总览</text>
+      </a>
+      <a class="tab-hit" href="#runtime" xlink:href="#runtime">
+        <rect x="248" y="10" width="52" height="34" fill="transparent"/>
+        <text class="tab-label-off lab-run" x="274" y="32" text-anchor="middle">运行</text>
+      </a>
+      <a class="tab-hit" href="#models" xlink:href="#models">
+        <rect x="306" y="10" width="52" height="34" fill="transparent"/>
+        <text class="tab-label-off lab-model" x="332" y="32" text-anchor="middle">模型</text>
+      </a>
+      <text class="tab-label-off" x="396" y="32" text-anchor="middle" fill="#8b98a9">子代理</text>
+      <text class="tab-label-off" x="462" y="32" text-anchor="middle" fill="#8b98a9">记忆</text>
+      <a class="tab-hit" href="#usage" xlink:href="#usage">
+        <rect x="494" y="10" width="52" height="34" fill="transparent"/>
+        <text class="tab-label-off lab-usage" x="520" y="32" text-anchor="middle">用量</text>
+      </a>
+      <text class="tab-label-off" x="578" y="32" text-anchor="middle" fill="#8b98a9">搜索</text>
+      <text x="636" y="32" text-anchor="middle" fill="#5c6a7c">更多</text>
     </g>
 
+    <!-- stage -->
     <g transform="translate(0,56)" clip-path="url(#stageClip)">
-      <!-- BASE: dashboard always underneath (fallback if animation blocked) -->
-      <g class="f">
+
+      <!-- SLIDE dashboard -->
+      <g id="dashboard" class="slide slide-dashboard f">
         <rect width="1168" height="404" fill="#0a0e14"/>
         <g transform="translate(28,24)">
           <text x="0" y="10" fill="#5c6a7c" font-size="11" font-weight="700" letter-spacing="1.4">DASHBOARD</text>
@@ -209,8 +240,8 @@
         </g>
       </g>
 
-      <!-- OVERLAY 2: runtime 4-8s -->
-      <g class="ov ov2 f">
+      <!-- SLIDE runtime -->
+      <g id="runtime" class="slide slide-runtime f">
         <rect width="1168" height="404" fill="#0a0e14"/>
         <g transform="translate(28,24)">
           <text x="0" y="18" fill="#e7edf5" font-size="18" font-weight="750">运行</text>
@@ -268,13 +299,12 @@
         </g>
       </g>
 
-      <!-- OVERLAY 3: models 8-12s -->
-      <g class="ov ov3 f">
+      <!-- SLIDE models -->
+      <g id="models" class="slide slide-models f">
         <rect width="1168" height="404" fill="#0a0e14"/>
         <rect x="0" y="0" width="260" height="404" fill="#0f141c"/>
         <line x1="260" y1="0" x2="260" y2="404" stroke="#243041"/>
         <text x="20" y="28" fill="#5c6a7c" font-size="11" font-weight="700" letter-spacing="1">供应商</text>
-
         <rect x="12" y="44" width="236" height="56" rx="10" fill="rgba(90,162,255,0.12)" stroke="rgba(90,162,255,0.35)"/>
         <text x="28" y="68" fill="#e7edf5" font-size="14" font-weight="700">mzhcloud</text>
         <text x="28" y="88" fill="#8b98a9" font-size="11">已配置 · 默认</text>
@@ -293,22 +323,15 @@
           <text x="0" y="56" fill="#5c6a7c" font-size="11">Base URL</text>
           <rect y="64" width="688" height="34" rx="8" fill="#151c27" stroke="#243041"/>
           <text class="m" x="12" y="86" fill="#8b98a9" font-size="12">https://api.example.com/v1</text>
-
           <text x="0" y="122" fill="#5c6a7c" font-size="11">API Key</text>
           <rect y="130" width="688" height="34" rx="8" fill="#151c27" stroke="#243041"/>
           <text class="m" x="12" y="152" fill="#5c6a7c" font-size="14">••••••••••••</text>
 
           <text x="0" y="192" fill="#e7edf5" font-size="14" font-weight="700">模型</text>
-          <rect x="520" y="176" width="80" height="26" rx="8" fill="transparent" stroke="#243041"/>
-          <text x="560" y="193" text-anchor="middle" fill="#8b98a9" font-size="11">获取模型</text>
-          <rect x="608" y="176" width="80" height="26" rx="8" fill="transparent" stroke="#243041"/>
-          <text x="648" y="193" text-anchor="middle" fill="#8b98a9" font-size="11">+ 模型</text>
-
           <rect y="214" width="688" height="32" rx="8" fill="#151c27"/>
           <text x="16" y="234" fill="#5c6a7c" font-size="11" font-weight="700">ID</text>
           <text x="220" y="234" fill="#5c6a7c" font-size="11" font-weight="700">名称</text>
           <text x="400" y="234" fill="#5c6a7c" font-size="11" font-weight="700">Ctx / Max</text>
-          <text x="560" y="234" fill="#5c6a7c" font-size="11" font-weight="700">费用</text>
 
           <rect y="250" width="688" height="36" fill="rgba(90,162,255,0.08)"/>
           <text x="16" y="273" fill="#e7edf5" font-size="12" font-weight="650">grok-4.5</text>
@@ -321,15 +344,15 @@
           <text x="400" y="309" fill="#5c6a7c" font-size="12">128k / 32k</text>
 
           <g transform="translate(0,330)">
-            <rect width="370" height="50" rx="10" fill="#0f141c" stroke="#243041"/>
+            <rect width="400" height="50" rx="10" fill="#0f141c" stroke="#243041"/>
             <text x="16" y="20" fill="#5aa2ff" font-size="11" font-weight="700">03 / 模型</text>
             <text x="16" y="38" fill="#8b98a9" font-size="12">供应商 CRUD · 远程拉模型 · 默认直达</text>
           </g>
         </g>
       </g>
 
-      <!-- OVERLAY 4: usage 12-16s -->
-      <g class="ov ov4 f">
+      <!-- SLIDE usage -->
+      <g id="usage" class="slide slide-usage f">
         <rect width="1168" height="404" fill="#0a0e14"/>
         <g transform="translate(28,20)">
           <text x="0" y="20" fill="#e7edf5" font-size="20" font-weight="750">用量分析</text>
@@ -399,12 +422,14 @@
       </g>
     </g>
 
-    <!-- dots -->
-    <g transform="translate(554,514)">
-      <circle class="d d1" cx="0" cy="0" r="5"/>
-      <circle class="d d2" cx="22" cy="0" r="5"/>
-      <circle class="d d3" cx="44" cy="0" r="5"/>
-      <circle class="d d4" cx="66" cy="0" r="5"/>
+    <!-- clickable dots -->
+    <g transform="translate(540,480)">
+      <a href="#dashboard" xlink:href="#dashboard"><circle class="dot dot-1" cx="0" cy="0" r="6" fill="#5c6a7c"/><rect x="-10" y="-12" width="20" height="24" fill="transparent"/></a>
+      <a href="#runtime" xlink:href="#runtime"><circle class="dot dot-2" cx="28" cy="0" r="6" fill="#5c6a7c"/><rect x="18" y="-12" width="20" height="24" fill="transparent"/></a>
+      <a href="#models" xlink:href="#models"><circle class="dot dot-3" cx="56" cy="0" r="6" fill="#5c6a7c"/><rect x="46" y="-12" width="20" height="24" fill="transparent"/></a>
+      <a href="#usage" xlink:href="#usage"><circle class="dot dot-4" cx="84" cy="0" r="6" fill="#5c6a7c"/><rect x="74" y="-12" width="20" height="24" fill="transparent"/></a>
     </g>
+
+    <text class="f hint" x="584" y="508" text-anchor="middle">点击顶栏「总览 / 运行 / 模型 / 用量」或底部圆点切换 · 无点击时自动轮播</text>
   </g>
 </svg>

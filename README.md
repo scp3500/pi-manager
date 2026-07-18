@@ -1,6 +1,17 @@
 <div align="center">
 
-<img src="docs/assets/banner.svg" alt="Pi Manager" width="100%"/>
+<a href="docs/assets/banner.svg">
+  <img src="docs/assets/banner.svg" alt="Pi Manager" width="100%"/>
+</a>
+
+<p>
+  <a href="docs/assets/banner.svg#dashboard"><img src="https://img.shields.io/badge/%E6%80%BB%E8%A7%88-0a0e14?style=for-the-badge&labelColor=5aa2ff&color=0f141c" alt="总览"/></a>
+  <a href="docs/assets/banner.svg#runtime"><img src="https://img.shields.io/badge/%E8%BF%90%E8%A1%8C-0a0e14?style=for-the-badge&labelColor=243041&color=0f141c" alt="运行"/></a>
+  <a href="docs/assets/banner.svg#models"><img src="https://img.shields.io/badge/%E6%A8%A1%E5%9E%8B-0a0e14?style=for-the-badge&labelColor=243041&color=0f141c" alt="模型"/></a>
+  <a href="docs/assets/banner.svg#usage"><img src="https://img.shields.io/badge/%E7%94%A8%E9%87%8F-0a0e14?style=for-the-badge&labelColor=243041&color=0f141c" alt="用量"/></a>
+</p>
+
+<sub>点上方按钮切换界面预览 · 打开 SVG 后顶栏 Tab / 底部圆点也可点 · 无操作时自动轮播</sub>
 
 # Pi Manager
 

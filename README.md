@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/banner.png" alt="Pi Manager" width="100%"/>
+<img src="docs/assets/banner.svg" alt="Pi Manager" width="100%"/>
 
 # Pi Manager
 

@@ -1,90 +1,171 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="480" viewBox="0 0 1280 480" role="img" aria-label="Pi Manager">
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="520" viewBox="0 0 1280 520" role="img" aria-label="Pi Manager">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#070b14"/>
-      <stop offset="45%" stop-color="#0c1630"/>
-      <stop offset="100%" stop-color="#111827"/>
-    </linearGradient>
-    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0"/>
-      <stop offset="50%" stop-color="#60a5fa" stop-opacity="0.55"/>
-      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
+    <!-- match public/style.css data-theme=default -->
+    <linearGradient id="bg" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#0a0e14"/>
+      <stop offset="55%" stop-color="#0f141c"/>
+      <stop offset="100%" stop-color="#151c27"/>
     </linearGradient>
     <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#38bdf8"/>
-      <stop offset="100%" stop-color="#818cf8"/>
+      <stop offset="0%" stop-color="#5aa2ff"/>
+      <stop offset="100%" stop-color="#3d7fd6"/>
     </linearGradient>
-    <radialGradient id="orb" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.35"/>
-      <stop offset="70%" stop-color="#312e81" stop-opacity="0.12"/>
-      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="18"/>
+    <linearGradient id="modelCard" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="rgba(90,162,255,0.16)"/>
+      <stop offset="60%" stop-color="rgba(90,162,255,0)"/>
+    </linearGradient>
+    <linearGradient id="cacheFill" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3fb950"/>
+      <stop offset="100%" stop-color="#5aa2ff"/>
+    </linearGradient>
+    <filter id="shadow1" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000" flood-opacity="0.35"/>
     </filter>
-    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
-      <path d="M32 0H0V32" fill="none" stroke="#94a3b8" stroke-opacity="0.07" stroke-width="1"/>
-    </pattern>
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="24"/>
+    </filter>
   </defs>
 
-  <rect width="1280" height="480" fill="url(#bg)"/>
-  <rect width="1280" height="480" fill="url(#grid)"/>
-  <circle cx="980" cy="120" r="180" fill="url(#orb)"/>
-  <circle cx="220" cy="400" r="160" fill="url(#orb)"/>
-  <rect x="0" y="210" width="1280" height="2" fill="url(#glow)" filter="url(#soft)"/>
+  <!-- app canvas -->
+  <rect width="1280" height="520" fill="url(#bg)"/>
+  <circle cx="1080" cy="-20" r="220" fill="#5aa2ff" opacity="0.08" filter="url(#softGlow)"/>
+  <circle cx="160" cy="540" r="180" fill="#3d7fd6" opacity="0.06" filter="url(#softGlow)"/>
 
-  <!-- window chrome -->
-  <g transform="translate(110,88)">
-    <rect width="520" height="300" rx="18" fill="#0b1220" stroke="#1f2a44" stroke-width="1.5"/>
-    <rect width="520" height="42" rx="18" fill="#111827"/>
-    <rect y="24" width="520" height="18" fill="#111827"/>
-    <circle cx="22" cy="21" r="6" fill="#f87171"/>
-    <circle cx="42" cy="21" r="6" fill="#fbbf24"/>
-    <circle cx="62" cy="21" r="6" fill="#34d399"/>
-    <text x="88" y="26" fill="#94a3b8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">localhost:3001 · Pi Manager</text>
+  <!-- browser / app frame -->
+  <g transform="translate(56,36)" filter="url(#shadow1)">
+    <rect width="1168" height="448" rx="16" fill="#0a0e14" stroke="#243041" stroke-width="1"/>
 
-    <!-- fake UI rows -->
-    <g font-family="ui-sans-serif, system-ui, Segoe UI, sans-serif">
-      <rect x="24" y="64" width="110" height="210" rx="12" fill="#0f172a" stroke="#1e293b"/>
-      <rect x="38" y="84" width="82" height="10" rx="5" fill="#334155"/>
-      <rect x="38" y="108" width="70" height="8" rx="4" fill="#1e3a5f"/>
-      <rect x="38" y="128" width="76" height="8" rx="4" fill="#1e293b"/>
-      <rect x="38" y="148" width="64" height="8" rx="4" fill="#1e293b"/>
-      <rect x="38" y="168" width="72" height="8" rx="4" fill="#1e293b"/>
-      <rect x="38" y="188" width="68" height="8" rx="4" fill="#1e293b"/>
+    <!-- header: real brand + tabs -->
+    <rect width="1168" height="58" rx="16" fill="#0f141c"/>
+    <rect y="40" width="1168" height="18" fill="#0f141c"/>
+    <line x1="0" y1="58" x2="1168" y2="58" stroke="#243041" stroke-width="1"/>
 
-      <rect x="150" y="64" width="346" height="64" rx="12" fill="#0f172a" stroke="#243b63"/>
-      <text x="168" y="92" fill="#e2e8f0" font-size="16" font-weight="700">默认模型</text>
-      <text x="168" y="114" fill="#38bdf8" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">provider / model-id</text>
-
-      <rect x="150" y="140" width="166" height="62" rx="12" fill="#0f172a" stroke="#1e293b"/>
-      <text x="166" y="166" fill="#94a3b8" font-size="11">TODAY</text>
-      <text x="166" y="188" fill="#f8fafc" font-size="20" font-weight="700">¥12.40</text>
-
-      <rect x="330" y="140" width="166" height="62" rx="12" fill="#0f172a" stroke="#1e293b"/>
-      <text x="346" y="166" fill="#94a3b8" font-size="11">CACHE HIT</text>
-      <text x="346" y="188" fill="#34d399" font-size="20" font-weight="700">72%</text>
-
-      <rect x="150" y="214" width="346" height="60" rx="12" fill="#0f172a" stroke="#1e293b"/>
-      <rect x="166" y="236" width="180" height="8" rx="4" fill="#1e293b"/>
-      <rect x="166" y="236" width="120" height="8" rx="4" fill="url(#accent)"/>
-      <rect x="166" y="252" width="240" height="6" rx="3" fill="#1e293b"/>
+    <!-- brand mark = public/brand/logo.svg geometry, scaled -->
+    <g transform="translate(22,14) scale(0.038)">
+      <path fill="#5aa2ff" fill-rule="evenodd" d="
+        M165.29 165.29
+        H517.36 V400 H400 V517.36 H282.65 V634.72 H165.29 Z
+        M282.65 282.65 V400 H400 V282.65 Z
+      "/>
+      <path fill="#e7edf5" d="M517.36 400 H634.72 V634.72 H517.36 Z"/>
     </g>
-  </g>
+    <text x="58" y="36" fill="#e7edf5" font-family="Segoe UI, Microsoft YaHei, system-ui, sans-serif" font-size="16" font-weight="700">Pi Manager</text>
 
-  <!-- wordmark -->
-  <g transform="translate(700,145)" font-family="ui-sans-serif, system-ui, Segoe UI, sans-serif">
-    <text x="0" y="0" fill="#64748b" font-size="14" letter-spacing="4">LOCAL CONSOLE</text>
-    <text x="0" y="58" fill="#f8fafc" font-size="56" font-weight="800" letter-spacing="-1.5">Pi Manager</text>
-    <text x="0" y="100" fill="#94a3b8" font-size="18">Models · Agents · Runtime · Usage · OpenVL</text>
+    <!-- main tabs (Chinese labels as in index.html) -->
+    <g font-family="Segoe UI, Microsoft YaHei, system-ui, sans-serif" font-size="13" font-weight="600">
+      <!-- active: 总览 -->
+      <rect x="200" y="14" width="64" height="30" rx="8" fill="rgba(90,162,255,0.14)" stroke="rgba(90,162,255,0.35)"/>
+      <text x="232" y="34" text-anchor="middle" fill="#e7edf5">总览</text>
+      <text x="300" y="34" text-anchor="middle" fill="#8b98a9">运行</text>
+      <text x="358" y="34" text-anchor="middle" fill="#8b98a9">模型</text>
+      <text x="424" y="34" text-anchor="middle" fill="#8b98a9">子代理</text>
+      <text x="492" y="34" text-anchor="middle" fill="#8b98a9">记忆</text>
+      <text x="550" y="34" text-anchor="middle" fill="#8b98a9">用量</text>
+      <text x="608" y="34" text-anchor="middle" fill="#8b98a9">搜索</text>
+      <text x="668" y="34" text-anchor="middle" fill="#5c6a7c">更多</text>
+    </g>
 
-    <g transform="translate(0,130)">
-      <rect width="118" height="34" rx="17" fill="url(#accent)"/>
-      <text x="59" y="22" text-anchor="middle" fill="#0b1220" font-size="13" font-weight="700">:3001</text>
-      <rect x="130" y="0" width="150" height="34" rx="17" fill="#0f172a" stroke="#334155"/>
-      <text x="205" y="22" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="600">0 npm deps</text>
-      <rect x="292" y="0" width="130" height="34" rx="17" fill="#0f172a" stroke="#334155"/>
-      <text x="357" y="22" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="600">Node ≥ 18</text>
+    <!-- header right meta -->
+    <text x="1128" y="35" text-anchor="end" fill="#5c6a7c" font-family="Segoe UI, Microsoft YaHei, system-ui, sans-serif" font-size="12">localhost:3001</text>
+
+    <!-- page body: dashboard -->
+    <g transform="translate(28,78)" font-family="Segoe UI, Microsoft YaHei, system-ui, sans-serif">
+      <text x="0" y="14" fill="#5c6a7c" font-size="11" font-weight="700" letter-spacing="1.5">DASHBOARD</text>
+      <text x="0" y="44" fill="#e7edf5" font-size="26" font-weight="750">总览</text>
+      <text x="0" y="68" fill="#8b98a9" font-size="13">本机 Pi 配置、用量与资源状态</text>
+
+      <!-- default model card -->
+      <g transform="translate(0,88)">
+        <rect width="720" height="88" rx="14" fill="#0f141c" stroke="rgba(90,162,255,0.35)" stroke-width="1.2"/>
+        <rect width="720" height="88" rx="14" fill="url(#modelCard)"/>
+        <text x="22" y="28" fill="#5c6a7c" font-size="11" font-weight="700" letter-spacing="1">默认模型</text>
+        <text x="22" y="56" fill="#e7edf5" font-size="22" font-weight="750">provider / model-id</text>
+        <rect x="22" y="66" width="72" height="12" rx="6" fill="rgba(90,162,255,0.15)" stroke="rgba(90,162,255,0.3)"/>
+        <text x="58" y="75" text-anchor="middle" fill="#8b98a9" font-size="9">mzhcloud</text>
+        <text x="680" y="50" text-anchor="end" fill="#5aa2ff" font-size="13" font-weight="650">管理 →</text>
+      </g>
+
+      <!-- usage metrics row: 今日 / 缓存 / 近7天 / 全局 -->
+      <g transform="translate(0,194)">
+        <!-- 今日 primary -->
+        <g>
+          <rect width="168" height="100" rx="12" fill="#151c27" stroke="rgba(90,162,255,0.28)"/>
+          <rect width="168" height="100" rx="12" fill="rgba(90,162,255,0.08)"/>
+          <text x="16" y="28" fill="#5c6a7c" font-size="11" font-weight="700" letter-spacing="0.8">今日</text>
+          <text x="16" y="58" fill="#e7edf5" font-size="24" font-weight="750">¥12.40</text>
+          <text x="16" y="82" fill="#5c6a7c" font-size="11">1.2M · 48 次</text>
+        </g>
+        <!-- 缓存命中 green-ish -->
+        <g transform="translate(184,0)">
+          <rect width="168" height="100" rx="12" fill="#151c27" stroke="#243041"/>
+          <rect width="168" height="100" rx="12" fill="rgba(63,185,80,0.08)"/>
+          <text x="16" y="28" fill="#5c6a7c" font-size="11" font-weight="700" letter-spacing="0.8">缓存命中</text>
+          <text x="16" y="58" fill="#3fb950" font-size="24" font-weight="750">72.0%</text>
+          <text x="16" y="82" fill="#5c6a7c" font-size="11">主 68% · 子 81%</text>
+        </g>
+        <!-- 近7天 -->
+        <g transform="translate(368,0)">
+          <rect width="168" height="100" rx="12" fill="#151c27" stroke="#243041"/>
+          <text x="16" y="28" fill="#5c6a7c" font-size="11" font-weight="700" letter-spacing="0.8">近 7 天</text>
+          <text x="16" y="58" fill="#e7edf5" font-size="22" font-weight="750">¥86.20</text>
+          <text x="16" y="82" fill="#5c6a7c" font-size="11">8.4M · 312 次</text>
+        </g>
+        <!-- 全局 -->
+        <g transform="translate(552,0)">
+          <rect width="168" height="100" rx="12" fill="#151c27" stroke="#243041"/>
+          <text x="16" y="28" fill="#5c6a7c" font-size="11" font-weight="700" letter-spacing="0.8">全局</text>
+          <text x="16" y="58" fill="#e7edf5" font-size="22" font-weight="750">¥1,024</text>
+          <text x="16" y="82" fill="#5c6a7c" font-size="11">120M · 3.1k 次</text>
+        </g>
+      </g>
+
+      <!-- right column: runtime strip -->
+      <g transform="translate(756,0)">
+        <rect width="356" height="382" rx="14" fill="#0f141c" stroke="#243041"/>
+        <text x="20" y="32" fill="#5c6a7c" font-size="11" font-weight="700" letter-spacing="1.2">运行</text>
+        <text x="336" y="32" text-anchor="end" fill="#5c6a7c" font-size="11">14:08:22</text>
+
+        <!-- chips -->
+        <rect x="20" y="48" width="72" height="24" rx="12" fill="rgba(90,162,255,0.12)" stroke="rgba(90,162,255,0.3)"/>
+        <text x="56" y="64" text-anchor="middle" fill="#e7edf5" font-size="11"><tspan font-weight="700" fill="#5aa2ff">1</tspan> 在干活</text>
+        <rect x="100" y="48" width="78" height="24" rx="12" fill="#151c27" stroke="#243041"/>
+        <text x="139" y="64" text-anchor="middle" fill="#8b98a9" font-size="11"><tspan font-weight="700">0</tspan> 在想</text>
+        <rect x="186" y="48" width="64" height="24" rx="12" fill="#151c27" stroke="#243041"/>
+        <text x="218" y="64" text-anchor="middle" fill="#8b98a9" font-size="11"><tspan font-weight="700">2</tspan> 停了</text>
+        <rect x="258" y="48" width="78" height="24" rx="12" fill="#151c27" stroke="#243041"/>
+        <text x="297" y="64" text-anchor="middle" fill="#8b98a9" font-size="11"><tspan font-weight="700" fill="#3fb950">1</tspan> Pi进程</text>
+
+        <!-- running row -->
+        <g transform="translate(20,92)">
+          <rect width="316" height="72" rx="12" fill="#151c27" stroke="rgba(90,162,255,0.25)"/>
+          <rect x="0" y="0" width="4" height="72" rx="2" fill="#5aa2ff"/>
+          <circle cx="22" cy="24" r="5" fill="#5aa2ff"/>
+          <text x="36" y="28" fill="#5aa2ff" font-size="12" font-weight="650">在调工具</text>
+          <text x="36" y="50" fill="#e7edf5" font-size="13" font-weight="650">修运行栏假显示…</text>
+          <rect x="200" y="16" width="100" height="22" rx="8" fill="rgba(90,162,255,0.1)" stroke="rgba(90,162,255,0.25)"/>
+          <text x="250" y="31" text-anchor="middle" fill="#8b98a9" font-size="11">bash · rg</text>
+          <text x="300" y="58" text-anchor="end" fill="#5c6a7c" font-size="11">0s 前</text>
+        </g>
+
+        <!-- stopped row -->
+        <g transform="translate(20,176)">
+          <rect width="316" height="64" rx="12" fill="#151c27" stroke="#243041"/>
+          <rect x="0" y="0" width="4" height="64" rx="2" fill="#5c6a7c"/>
+          <circle cx="22" cy="24" r="5" fill="#5c6a7c"/>
+          <text x="36" y="28" fill="#8b98a9" font-size="12" font-weight="650">已退出</text>
+          <text x="36" y="50" fill="#e7edf5" font-size="13">本机没有 Pi 进程</text>
+        </g>
+
+        <!-- progress -->
+        <g transform="translate(20,260)">
+          <text x="0" y="14" fill="#5c6a7c" font-size="11">工具进度</text>
+          <rect y="28" width="316" height="8" rx="4" fill="#1b2431"/>
+          <rect y="28" width="220" height="8" rx="4" fill="url(#cacheFill)"/>
+          <text x="0" y="56" fill="#8b98a9" font-size="12">6 完成 · 1 进行中</text>
+        </g>
+
+        <text x="20" y="360" fill="#5c6a7c" font-size="11">Agent View · jsonl + 进程探测</text>
+      </g>
     </g>
   </g>
 </svg>

@@ -49,7 +49,7 @@ cd pi-manager && npm start
 <td width="33%" valign="top">
 
 ### 可选扩展
-OpenVL、记忆/知识库、Pi 插件均可缺失；缺什么不拖垮核心页。
+自研 OpenVL 识图、记忆/知识库、Pi 插件均可缺失；缺什么不拖垮核心页。
 
 </td>
 </tr>
@@ -67,7 +67,7 @@ OpenVL、记忆/知识库、Pi 插件均可缺失；缺什么不拖垮核心页�
 | **子代理** | 编辑 `agents/*.md`、工具权限预设、工作流规范 |
 | **用量** | token / 费用趋势；与状态栏同一套 `usage.cost.total` |
 | **会话** | 搜索、清理、回收站还原 |
-| **识图** | [OpenVL](https://github.com/scp3500/openvl) profiles；教程页可一键安装 |
+| **识图** | 集成自研 [OpenVL](https://github.com/scp3500/openvl)；教程页可一键安装 |
 | **插件** | packages / extensions 列表 + 白名单安装 |
 | **工作区** | 映射 memory / knowledge 到本机目录 |
 | **教程** | 应用内安装说明、外链、示例 agent |
@@ -85,7 +85,7 @@ OpenVL、记忆/知识库、Pi 插件均可缺失；缺什么不拖垮核心页�
                               │ 读写 / 扫描
            ┌──────────────────┼──────────────────┐
            ▼                  ▼                  ▼
-   ~/.pi/agent/*         工作区映射         OpenVL（可选）
+   ~/.pi/agent/*         工作区映射         OpenVL（自研，可选）
    models settings       memory/knowledge   @scp3500/openvl
    agents sessions       pi-manager.json    profiles + CLI
 ```
@@ -94,7 +94,7 @@ OpenVL、记忆/知识库、Pi 插件均可缺失；缺什么不拖垮核心页�
 |------|------|
 | **[Pi](https://github.com/badlogic/pi-mono)** | 数据面：配置与会话在 `~/.pi/agent` |
 | **Node ≥ 18** | 运行面：本仓库 **0** 个 production npm 依赖 |
-| **[OpenVL](https://github.com/scp3500/openvl)** | 可选识图；教程页可 `npm i -g` |
+| **[OpenVL](https://github.com/scp3500/openvl)**（同作者） | 可选识图能力；Manager 管理其配置，教程页可一键安装 |
 | **工作区** | 可选内容根 |
 
 ---
@@ -138,9 +138,11 @@ npm start
 </details>
 
 <details>
-<summary><b>3. 可选：OpenVL</b></summary>
+<summary><b>3. 可选：OpenVL 识图（同作者）</b></summary>
 
 <br/>
+
+[OpenVL](https://github.com/scp3500/openvl) 是我写的本机视觉 CLI / Skill。Pi Manager 负责管理它的 profiles 与连通测试。
 
 ```bash
 npm install -g @scp3500/openvl
@@ -231,11 +233,14 @@ npm test
 
 ---
 
-## 致谢
+## 相关项目
 
-- [Pi Coding Agent](https://github.com/badlogic/pi-mono)  
-- [OpenVL](https://github.com/scp3500/openvl)  
-- 用量统计思路参考社区工具（见 `lib/usage.js` 头注释）
+| 项目 | 关系 |
+|------|------|
+| **[OpenVL](https://github.com/scp3500/openvl)** | **同作者**。本机看图 CLI / Skill；Manager 的识图页管理其配置与一键安装 |
+| **[Pi Coding Agent](https://github.com/badlogic/pi-mono)** | 上游 Agent 运行时；Manager 读写其 `~/.pi/agent` 配置与会话 |
+
+用量统计思路参考社区 session 工具（见 `lib/usage.js` 头注释）。
 
 ---
 

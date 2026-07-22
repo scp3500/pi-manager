@@ -9,6 +9,23 @@ function esc(s) {
 
 const TLM_LEVELS = ['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'];
 
+/**
+ * 新建/导入默认思考档位映射（全量覆盖，避免漏档）。
+ * 偏保守：off→none；xhigh/max 收到 high（多数供应商无更高档）。
+ * 编辑器里仍可改成恒等或其它厂商值。
+ */
+function defaultThinkingLevelMap() {
+  return {
+    off: 'none',
+    minimal: 'minimal',
+    low: 'low',
+    medium: 'medium',
+    high: 'high',
+    xhigh: 'high',
+    max: 'high',
+  };
+}
+
 const state = {
   route: 'models',
   meta: {},
@@ -1441,7 +1458,8 @@ function openNewProvider() {
     headers: {},
     compat: {},
     models: [],
-    authHeader: false,
+    // OpenAI 兼容默认 Bearer；未勾选才走 x-api-key
+    authHeader: true,
   };
   state.selectedModelId = null;
   state.keyVisible = false;
@@ -1477,7 +1495,8 @@ function fillProviderForm(p) {
     $('#p-apiKey').value = '';
     $('#p-apiKey').placeholder = 'sk-… / $ENV / !cmd';
   }
-  $('#p-authHeader').checked = !!p.authHeader;
+  // 缺省/未写字段 = Bearer（与 chat-client: authHeader !== false 一致）
+  $('#p-authHeader').checked = p.authHeader !== false;
   $('#p-compat').value =
     p.compat && Object.keys(p.compat).length ? JSON.stringify(p.compat, null, 2) : '';
   $('#p-headers').value =
@@ -1562,6 +1581,7 @@ function openModelEditor(modelId) {
       contextWindow: 128000,
       maxTokens: 16384,
       input: ['text'],
+      thinkingLevelMap: defaultThinkingLevelMap(),
     });
     $('#model-delete').classList.add('hidden');
   } else {
@@ -1920,7 +1940,8 @@ async function runProviderTestFromModal() {
         body: JSON.stringify({
           baseUrl: formBase || undefined,
           apiKey: formKey || '__KEEP__',
-          authHeader: $('#p-authHeader')?.checked,
+          // 与对话一致：勾选或未写 = Bearer；仅明确取消勾选才 x-api-key
+          authHeader: $('#p-authHeader')?.checked !== false,
           headers: formHeaders,
           model: selectedModel,
           api: $('#p-api')?.value,
@@ -1982,7 +2003,7 @@ async function fetchRemoteModelsUI() {
     ) {
       formKey = '';
     }
-    const formAuth = $('#p-authHeader')?.checked;
+    const formAuth = $('#p-authHeader')?.checked !== false;
     let formHeaders;
     try {
       formHeaders = parseJsonField($('#p-headers').value, 'Headers');
@@ -1993,11 +2014,12 @@ async function fetchRemoteModelsUI() {
     const savedBase = state.providerDetail?.baseUrl || '';
     const headersChanged =
       formHeaders && JSON.stringify(formHeaders) !== JSON.stringify(state.providerDetail?.headers || {});
+    const savedAuth = state.providerDetail?.authHeader !== false;
     const useOverride =
       (formBase && formBase !== savedBase) ||
       !!formKey ||
       !!headersChanged ||
-      formAuth !== !!state.providerDetail?.authHeader;
+      formAuth !== savedAuth;
 
     let data;
     if (useOverride) {
@@ -2126,11 +2148,12 @@ async function importSelectedRemoteModels() {
     models: selected.map((m) => ({
       id: m.id,
       name: m.name || m.id,
-      reasoning: !!m.guess?.reasoning,
+      reasoning: m.guess?.reasoning != null ? !!m.guess.reasoning : true,
       contextWindow: m.guess?.contextWindow,
       maxTokens: m.guess?.maxTokens,
       input: ['text'],
       cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      thinkingLevelMap: defaultThinkingLevelMap(),
     })),
   };
 

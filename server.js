@@ -120,6 +120,11 @@ function safePublicPath(urlPath) {
   return filePath;
 }
 
+/** Small static file cache (mtime+size). Caps memory for public assets. */
+const staticCache = new Map(); // path -> { mtimeMs, size, type, content }
+const STATIC_CACHE_MAX = 80;
+const STATIC_CACHE_MAX_BYTES = 512 * 1024; // skip caching files larger than 512KB
+
 function serveStatic(res, urlPath) {
   const filePath = safePublicPath(urlPath);
   if (!filePath) return sendError(res, 404, 'Not Found');
@@ -127,8 +132,40 @@ function serveStatic(res, urlPath) {
   const type = STATIC_TYPES[ext];
   if (!type) return sendError(res, 404, 'Not Found');
   try {
+    const st = fs.statSync(filePath);
+    if (!st.isFile()) return sendError(res, 404, 'Not Found');
+    const hit = staticCache.get(filePath);
+    if (hit && hit.mtimeMs === st.mtimeMs && hit.size === st.size) {
+      res.writeHead(200, {
+        'Content-Type': hit.type,
+        'Cache-Control': 'no-cache',
+        'X-Static-Cache': 'HIT',
+      });
+      res.end(hit.content);
+      return;
+    }
     const content = fs.readFileSync(filePath);
-    res.writeHead(200, { 'Content-Type': type });
+    if (st.size <= STATIC_CACHE_MAX_BYTES) {
+      if (staticCache.size >= STATIC_CACHE_MAX) {
+        let i = 0;
+        const drop = Math.floor(STATIC_CACHE_MAX / 4) || 1;
+        for (const k of staticCache.keys()) {
+          staticCache.delete(k);
+          if (++i >= drop) break;
+        }
+      }
+      staticCache.set(filePath, {
+        mtimeMs: st.mtimeMs,
+        size: st.size,
+        type,
+        content,
+      });
+    }
+    res.writeHead(200, {
+      'Content-Type': type,
+      'Cache-Control': 'no-cache',
+      'X-Static-Cache': 'MISS',
+    });
     res.end(content);
   } catch {
     sendError(res, 404, 'Not Found');
@@ -558,7 +595,7 @@ async function handleModelsApi(req, res, pathname, method) {
             const payload = {
               id,
               name: (item.name && String(item.name)) || id,
-              reasoning: !!item.reasoning,
+              reasoning: item.reasoning != null ? !!item.reasoning : true,
               input: Array.isArray(item.input) ? item.input : ['text'],
             };
             if (item.contextWindow != null && item.contextWindow !== '')
@@ -569,6 +606,13 @@ async function handleModelsApi(req, res, pathname, method) {
             // defaults for cost if missing
             if (!payload.cost) {
               payload.cost = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
+            }
+            // 默认补全思考档位映射，避免新建/导入后漏档
+            if (item.thinkingLevelMap && typeof item.thinkingLevelMap === 'object') {
+              payload.thinkingLevelMap = item.thinkingLevelMap;
+            } else {
+              const { defaultThinkingLevelMap } = require('./lib/models');
+              payload.thinkingLevelMap = defaultThinkingLevelMap();
             }
             upsertModel(providerId, existing.has(id) ? id : null, payload);
             existing.add(id);
@@ -965,7 +1009,11 @@ async function handleConsoleApi(req, res, pathname, method) {
     try {
       const body = await readBody(req);
       const paths = body && body.paths;
-      sendJson(res, 200, sessionsApi.deleteSessionFiles(paths));
+      const result = sessionsApi.deleteSessionFiles(paths);
+      // drop stale header / runtime parse entries after disk changes
+      sessionsApi.clearSessionHeaderCache();
+      runtimeApi.clearRuntimeCache();
+      sendJson(res, 200, result);
     } catch (e) {
       if (e.status) sendError(res, e.status, e.message);
       else mapError(res, e);
@@ -976,7 +1024,10 @@ async function handleConsoleApi(req, res, pathname, method) {
     try {
       const body = await readBody(req);
       const days = body && body.days != null ? Number(body.days) : 7;
-      sendJson(res, 200, sessionsApi.deleteSessionsOlderThan(days));
+      const result = sessionsApi.deleteSessionsOlderThan(days);
+      sessionsApi.clearSessionHeaderCache();
+      runtimeApi.clearRuntimeCache();
+      sendJson(res, 200, result);
     } catch (e) {
       if (e.status) sendError(res, e.status, e.message);
       else mapError(res, e);
@@ -2189,5 +2240,14 @@ server.listen(PORT, () => {
   console.log(
     '  openvl:   ' + (OPENVL_AVAILABLE ? OPENVL_PROFILES_FILE : '(未安装)')
   );
+  // warm usage disk index into memory so first /api/usage after restart is fast
+  setImmediate(() => {
+    try {
+      usageApi.collectUsage({ window: 'all', force: false });
+      console.log('  usage:    cache warmed');
+    } catch (e) {
+      console.log('  usage:    warm failed: ' + (e && e.message ? e.message : e));
+    }
+  });
   console.log('  pid:      ' + process.pid);
 });

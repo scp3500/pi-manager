@@ -96,14 +96,43 @@ function usageQuery(window, force) {
   );
 }
 
+/** Prefer localStorage so cache survives tab/browser restart; fall back to sessionStorage. */
+function usageLocalStoreGet() {
+  try {
+    const raw = localStorage.getItem(USAGE_LOCAL_KEY);
+    if (raw) return raw;
+  } catch {
+    /* ignore */
+  }
+  try {
+    return sessionStorage.getItem(USAGE_LOCAL_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function usageLocalStoreSet(raw) {
+  try {
+    localStorage.setItem(USAGE_LOCAL_KEY, raw);
+    return;
+  } catch {
+    /* quota / private mode */
+  }
+  try {
+    sessionStorage.setItem(USAGE_LOCAL_KEY, raw);
+  } catch {
+    /* ignore */
+  }
+}
+
 function readLocalUsageCache(window) {
   try {
-    const raw = sessionStorage.getItem(USAGE_LS_KEY);
+    const raw = usageLocalStoreGet();
     if (!raw) return null;
     const obj = JSON.parse(raw);
     if (!obj || !obj.byWindow || !obj.byWindow[window]) return null;
-    // expire 30 min client cache
-    if (obj.savedAt && Date.now() - obj.savedAt > 30 * 60_000) return null;
+    // client paint cache: 6h (server disk index is source of truth; network still soft-refreshes)
+    if (obj.savedAt && Date.now() - obj.savedAt > 6 * 60 * 60_000) return null;
     return obj.byWindow[window];
   } catch {
     return null;
@@ -114,20 +143,15 @@ function writeLocalUsageCache(window, data) {
   try {
     let obj = { savedAt: Date.now(), byWindow: {} };
     try {
-      const raw = sessionStorage.getItem(USAGE_LS_KEY);
+      const raw = usageLocalStoreGet();
       if (raw) obj = Object.assign(obj, JSON.parse(raw));
     } catch {
       /* ignore */
     }
     if (!obj.byWindow) obj.byWindow = {};
-    // strip heavy fields for sessionStorage if needed — models lists are fine
     obj.byWindow[window] = data;
-    // also store sibling snapshots under their windows if present via same payload shape
-    if (data && data.snapshots) {
-      // keep full payload only for current window; enough for dash card
-    }
     obj.savedAt = Date.now();
-    sessionStorage.setItem(USAGE_LS_KEY, JSON.stringify(obj));
+    usageLocalStoreSet(JSON.stringify(obj));
   } catch {
     /* quota — ignore */
   }

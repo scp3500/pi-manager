@@ -6,7 +6,8 @@
   let expandedId = null;
   let lastData = null;
   let lastFetchedAt = 0;
-  const RT_SOFT_TTL_MS = 8_000;
+  /** Soft client TTL: skip network if last fetch was recent (aligned with 4s poll). */
+  const RT_SOFT_TTL_MS = 6_000;
 
   const esc = (s) =>
     String(s ?? '')
@@ -559,9 +560,9 @@
     stopTimer();
     if ($('#rt-auto')?.checked) {
       timer = setInterval(() => {
-        // soft poll: use server MEM_TTL (~800ms); force only on manual refresh
+        // soft poll every 4s; network at most ~every RT_SOFT_TTL (6s) + server MEM_TTL
         if (typeof state !== 'undefined' && state.route === 'runtime') loadRuntime(false);
-      }, 2000);
+      }, 4000);
     }
   }
   function enterRuntimeRoute() {

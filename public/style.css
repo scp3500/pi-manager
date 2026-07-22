@@ -418,6 +418,7 @@ input[type='checkbox'],
 input[type='radio'] {
   -webkit-appearance: none;
   appearance: none;
+  position: relative; /* ::after 勾/点定位 */
   width: 16px;
   height: 16px;
   margin: 0;
@@ -425,7 +426,8 @@ input[type='radio'] {
   box-sizing: border-box;
   border: 1.5px solid var(--line-2);
   border-radius: 4px;
-  background-color: var(--bg-1);
+  /* 未勾选：略亮于页面底，避免「框里一团黑」 */
+  background-color: var(--bg-3);
   background-image: none;
   accent-color: var(--accent); /* 兜底：不支持 appearance 的环境 */
   color: var(--accent);
@@ -442,24 +444,44 @@ input[type='radio'] {
 input[type='checkbox']:hover,
 input[type='radio']:hover {
   border-color: var(--accent);
-  background-color: var(--bg-2);
+  background-color: rgba(var(--accent-rgb), 0.12);
 }
 input[type='checkbox']:checked,
 input[type='radio']:checked {
   border-color: var(--accent);
   background-color: var(--accent);
-  background-position: center;
-  background-repeat: no-repeat;
+  background-image: none; /* 勾/点用 mask + --on-accent，避免 SVG 写死 #fff */
+  position: relative;
 }
-/* 勾：浅色对勾，不写死蓝底 */
-input[type='checkbox']:checked {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' d='M3.5 8.2l3 3 6-6.5'/%3E%3C/svg%3E");
-  background-size: 12px 12px;
+/* 勾：颜色跟 --on-accent（主题 token），不写死白/蓝 */
+input[type='checkbox']:checked::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--on-accent);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' d='M3.5 8.2l3 3 6-6.5'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' d='M3.5 8.2l3 3 6-6.5'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: 12px 12px;
+  mask-size: 12px 12px;
 }
 /* 圆点 */
-input[type='radio']:checked {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='3.2' fill='%23ffffff'/%3E%3C/svg%3E");
-  background-size: 16px 16px;
+input[type='radio']:checked::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--on-accent);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='3.2' fill='%23000'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='3.2' fill='%23000'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: 16px 16px;
+  mask-size: 16px 16px;
 }
 input[type='checkbox']:focus-visible,
 input[type='radio']:focus-visible {
@@ -1203,11 +1225,14 @@ textarea.mono {
   color: var(--text);
   font-size: var(--fs-md);
 }
+.fields .check.check-mt {
+  margin-top: 18px;
+}
 .fields .check input {
   width: 15px;
   height: 15px;
   min-height: auto;
-  accent-color: var(--accent);
+  /* 外观与颜色走全局 input[type=checkbox] token，勿再写死色 */
 }
 .feature-toggle input {
   accent-color: var(--accent);

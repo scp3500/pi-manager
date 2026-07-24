@@ -51,6 +51,8 @@ const state = {
   remoteModelsUrl: '',
   remoteSelected: new Set(),
   remoteFilter: '',
+  // 每个供应商独立：远程列表 / 勾选 / 过滤 / 面板是否展开
+  remoteByProvider: {},
   // openvl
   openvlProfiles: [],
   openvlActive: null,
@@ -1432,12 +1434,17 @@ async function selectProvider(id, confirmLeave) {
     showToast('读取失败: ' + e.message, false);
     return;
   }
+  // 切换前保存当前供应商的远程勾选状态
+  if (state.currentProviderId && state.currentProviderId !== id) {
+    persistRemoteStateForProvider(state.currentProviderId);
+  }
   state.currentProviderId = id;
   state.selectedModelId = null;
   state.keyVisible = false;
   fillProviderForm(state.providerDetail);
   renderModelTable();
   fillProviderTestModelSelect();
+  restoreRemoteStateForProvider(id);
   $('#model-editor').classList.add('hidden');
   $('#provider-empty').classList.add('hidden');
   $('#provider-editor').classList.remove('hidden');
@@ -1448,7 +1455,9 @@ async function selectProvider(id, confirmLeave) {
 
 function openNewProvider() {
   if (state.modelsDirty && !confirm('有未保存修改，继续新建？')) return;
+  if (state.currentProviderId) persistRemoteStateForProvider(state.currentProviderId);
   state.currentProviderId = null;
+  restoreRemoteStateForProvider(null);
   state.providerDetail = {
     id: '',
     baseUrl: '',
@@ -1827,7 +1836,59 @@ async function deleteModel() {
 // ── remote models fetch / import ────────────────────────────────────────────
 
 function closeRemotePanel() {
+  persistRemoteStateForProvider(state.currentProviderId);
   $('#remote-models-panel')?.classList.add('hidden');
+}
+
+function persistRemoteStateForProvider(providerId) {
+  if (!providerId) return;
+  const panelOpen = !$('#remote-models-panel')?.classList.contains('hidden');
+  state.remoteByProvider[providerId] = {
+    models: state.remoteModels || [],
+    url: state.remoteModelsUrl || '',
+    selected: [...(state.remoteSelected || [])],
+    filter: state.remoteFilter || '',
+    panelOpen,
+  };
+}
+
+function restoreRemoteStateForProvider(providerId) {
+  const cached = providerId ? state.remoteByProvider[providerId] : null;
+  if (!cached) {
+    state.remoteModels = [];
+    state.remoteModelsUrl = '';
+    state.remoteSelected = new Set();
+    state.remoteFilter = '';
+    if ($('#remote-filter')) $('#remote-filter').value = '';
+    $('#remote-models-panel')?.classList.add('hidden');
+    const meta = $('#remote-models-meta');
+    if (meta) meta.textContent = '';
+    const box = $('#remote-models-list');
+    if (box) box.innerHTML = '';
+    return;
+  }
+  state.remoteModels = Array.isArray(cached.models) ? cached.models : [];
+  state.remoteModelsUrl = cached.url || '';
+  state.remoteSelected = new Set(Array.isArray(cached.selected) ? cached.selected : []);
+  state.remoteFilter = cached.filter || '';
+  if ($('#remote-filter')) $('#remote-filter').value = state.remoteFilter;
+  const meta = $('#remote-models-meta');
+  if (meta) {
+    const localN = state.remoteModels.filter((m) => m.local).length;
+    meta.textContent = state.remoteModels.length
+      ? '· ' +
+        state.remoteModels.length +
+        ' 个' +
+        (localN ? '（已有 ' + localN + '）' : '') +
+        (state.remoteModelsUrl ? ' · ' + state.remoteModelsUrl : '')
+      : '';
+  }
+  if (cached.panelOpen && state.remoteModels.length) {
+    $('#remote-models-panel')?.classList.remove('hidden');
+    renderRemoteModelsList();
+  } else {
+    $('#remote-models-panel')?.classList.add('hidden');
+  }
 }
 
 function ensureProviderTestModal() {
@@ -2045,9 +2106,8 @@ async function fetchRemoteModelsUI() {
 
     state.remoteModels = data.models || [];
     state.remoteModelsUrl = data.url || '';
-    state.remoteSelected = new Set(
-      state.remoteModels.filter((m) => !m.local).map((m) => m.id)
-    );
+    // 默认全不选，避免一键误导入；各供应商独立勾选状态
+    state.remoteSelected = new Set();
     state.remoteFilter = '';
     if ($('#remote-filter')) $('#remote-filter').value = '';
     $('#remote-models-panel')?.classList.remove('hidden');
@@ -2062,7 +2122,8 @@ async function fetchRemoteModelsUI() {
         (data.url ? ' · ' + data.url : '');
     }
     renderRemoteModelsList();
-    showToast('获取到 ' + state.remoteModels.length + ' 个模型');
+    persistRemoteStateForProvider(state.currentProviderId);
+    showToast('获取到 ' + state.remoteModels.length + ' 个模型（默认未勾选）');
   } catch (e) {
     showToast('获取失败: ' + e.message, false);
   } finally {
@@ -2118,6 +2179,7 @@ function renderRemoteModelsList() {
       const id = inp.dataset.remoteId;
       if (inp.checked) state.remoteSelected.add(id);
       else state.remoteSelected.delete(id);
+      persistRemoteStateForProvider(state.currentProviderId);
     });
   });
 }
@@ -2134,6 +2196,7 @@ function selectRemote(mode) {
       else state.remoteSelected.add(m.id);
     });
   }
+  persistRemoteStateForProvider(state.currentProviderId);
   renderRemoteModelsList();
 }
 
@@ -2187,6 +2250,7 @@ async function importSelectedRemoteModels() {
     }));
     // clear selection of imported
     (result.imported || []).forEach((id) => state.remoteSelected.delete(id));
+    persistRemoteStateForProvider(state.currentProviderId);
     renderRemoteModelsList();
 
     const msg =
@@ -2545,9 +2609,8 @@ function renderWorkflowPreview() {
     return;
   }
   try {
-    if (typeof marked !== 'undefined' && marked.parse) {
-      if (marked.setOptions) marked.setOptions({ breaks: true, gfm: true });
-      box.innerHTML = marked.parse(raw);
+    if (typeof renderSafeMarkdown === 'function') {
+      box.innerHTML = renderSafeMarkdown(raw);
     } else {
       box.innerHTML = '<pre class="md-plain">' + esc(raw) + '</pre>';
     }
@@ -3490,9 +3553,8 @@ async function fetchOpenvlModels() {
     state.openvlRemoteHideLocal = false;
     if ($('#ov-remote-filter')) $('#ov-remote-filter').value = '';
     if ($('#ov-remote-hide-local')) $('#ov-remote-hide-local').checked = false;
-    state.openvlRemoteSelected = new Set(
-      state.openvlRemoteModels.filter((m) => !m.local).map((m) => m.id)
-    );
+    // 默认全不选，避免误导入
+    state.openvlRemoteSelected = new Set();
     const panel = $('#ov-remote-models-panel');
     panel?.classList.remove('hidden');
     const meta = $('#ov-remote-meta');

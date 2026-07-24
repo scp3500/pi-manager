@@ -56,10 +56,13 @@
     const raw = prepareMarkdownSource(text, streaming);
     if (!raw) return '';
     try {
+      if (typeof renderSafeMarkdown === 'function') {
+        return renderSafeMarkdown(raw, { streaming: !!streaming });
+      }
       if (typeof marked !== 'undefined') {
         if (marked.setOptions) marked.setOptions({ breaks: true, gfm: true });
         const html = typeof marked.parse === 'function' ? marked.parse(raw) : marked(raw);
-        return html;
+        return typeof sanitizeHtml === 'function' ? sanitizeHtml(html) : esc(raw);
       }
     } catch (e) {
       console.warn('marked failed', e);

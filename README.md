@@ -180,8 +180,11 @@ npm install -g @scp3500/openvl
 | 变量 | 默认 | 含义 |
 |------|------|------|
 | `PORT` | `3001` | 服务端口 |
+| `PI_MANAGER_HOST` | `127.0.0.1` | 监听地址（默认仅 loopback） |
+| `PI_MANAGER_ALLOW_REMOTE` | 未设置 | 设为 `1` 才允许非 loopback Host |
 | `PI_AGENT_DIR` | `~/.pi/agent` | Pi 配置根 |
 | `PI_MANAGER_CONFIG` | `$PI_AGENT_DIR/pi-manager.json` | 控制台配置 |
+| `SESSIONS_DIR` | `$PI_AGENT_DIR/sessions` | 会话目录（测试可指临时目录） |
 | `OPENVL_PKG_DIR` | 自动探测 | OpenVL 包目录 |
 
 ---
@@ -189,9 +192,13 @@ npm install -g @scp3500/openvl
 ## 安全
 
 > [!IMPORTANT]
-> 默认服务本机。**不要把端口裸暴露到公网。**
+> 默认 **只监听 127.0.0.1**。**不要把端口裸暴露到公网。**
 
-- 导出 JSON 会脱敏 API Key  
+- 默认 bind loopback；写请求校验 Host / Origin  
+- `GET /api/config` 与 Provider 详情默认 **脱敏 API Key**（`?reveal=1` 才给明文）  
+- 工作区路径：`..` + symlink 越界拒绝；bootstrap **先校验再写盘**  
+- Markdown 预览 / 聊天走 `md-safe.js`（剥 raw HTML + 白名单标签）  
+- 会话 cleanup 测试必须使用临时 `SESSIONS_DIR`，禁止动真实会话  
 - 写操作修改真实 Pi 配置（滚动 `.bak`）  
 - 教程一键安装仅白名单：  
   - `npm install -g @scp3500/openvl`  

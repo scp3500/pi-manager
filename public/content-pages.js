@@ -417,14 +417,11 @@ function renderMarkdownPreview(kind) {
     return;
   }
   try {
-    if (typeof marked !== 'undefined' && marked.parse) {
-      // 安全起见：纯本地文件预览，不渲染 raw HTML
-      if (marked.setOptions) {
-        marked.setOptions({ breaks: true, gfm: true });
-      }
-      box.innerHTML = marked.parse(raw);
+    if (typeof renderSafeMarkdown === 'function') {
+      box.innerHTML = renderSafeMarkdown(raw);
+    } else if (typeof marked !== 'undefined' && marked.parse) {
+      box.innerHTML = '<pre class="md-plain">' + esc(raw) + '</pre>';
     } else {
-      // fallback：纯文本
       box.innerHTML = '<pre class="md-plain">' + esc(raw) + '</pre>';
     }
   } catch (e) {

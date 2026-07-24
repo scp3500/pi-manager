@@ -219,9 +219,8 @@ function renderPromptPreview() {
     return;
   }
   try {
-    if (typeof marked !== 'undefined' && marked.parse) {
-      if (marked.setOptions) marked.setOptions({ breaks: true, gfm: true });
-      box.innerHTML = marked.parse(raw);
+    if (typeof renderSafeMarkdown === 'function') {
+      box.innerHTML = renderSafeMarkdown(raw);
     } else {
       box.innerHTML = '<pre class="md-plain">' + esc(raw) + '</pre>';
     }

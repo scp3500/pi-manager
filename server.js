@@ -13,11 +13,18 @@ const {
   PORT,
   BODY_LIMIT,
 } = require('./lib/config');
+const {
+  parseBindHost,
+  checkRequestSecurity,
+  securityHeaders,
+} = require('./lib/http-security');
+const BIND_HOST = parseBindHost();
 const { validateProviderId, validateModelId } = require('./lib/model-security');
 const { validateAgentName } = require('./lib/agent-security');
 const {
   listProviders,
   getProvider,
+  redactModelsConfig,
   providerExists,
   upsertProvider,
   deleteProvider,
@@ -75,8 +82,13 @@ const STATIC_TYPES = {
 };
 
 function sendJson(res, code, obj) {
-  res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' });
-  res.end(JSON.stringify(obj));
+  const body = JSON.stringify(obj);
+  res.writeHead(code, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Content-Length': Buffer.byteLength(body),
+    ...securityHeaders(),
+  });
+  res.end(body);
 }
 
 function sendError(res, code, message) {
@@ -140,6 +152,7 @@ function serveStatic(res, urlPath) {
         'Content-Type': hit.type,
         'Cache-Control': 'no-cache',
         'X-Static-Cache': 'HIT',
+        ...securityHeaders(),
       });
       res.end(hit.content);
       return;
@@ -165,6 +178,7 @@ function serveStatic(res, urlPath) {
       'Content-Type': type,
       'Cache-Control': 'no-cache',
       'X-Static-Cache': 'MISS',
+      ...securityHeaders(),
     });
     res.end(content);
   } catch {
@@ -377,7 +391,10 @@ async function handleModelsApi(req, res, pathname, method) {
   if (pathname === '/api/config') {
     if (method === 'GET') {
       try {
-        sendJson(res, 200, readModelsFile());
+        const raw = readModelsFile();
+        const url = new URL(req.url || '/', 'http://localhost');
+        const reveal = url.searchParams.get('reveal') === '1';
+        sendJson(res, 200, reveal ? raw : redactModelsConfig(raw));
       } catch (e) {
         mapError(res, e);
       }
@@ -441,7 +458,9 @@ async function handleModelsApi(req, res, pathname, method) {
     if (parts.length === 1) {
       if (method === 'GET') {
         try {
-          sendJson(res, 200, getProvider(providerId));
+          const url = new URL(req.url || '/', 'http://localhost');
+          const reveal = url.searchParams.get('reveal') === '1';
+          sendJson(res, 200, getProvider(providerId, { revealKey: reveal }));
         } catch (e) {
           mapError(res, e);
         }
@@ -2155,6 +2174,12 @@ const server = http.createServer(async (req, res) => {
     const url = new URL(req.url || '/', 'http://localhost');
     const pathname = url.pathname;
 
+    const secErr = checkRequestSecurity(req, { bindHost: BIND_HOST, port: PORT });
+    if (secErr) {
+      sendError(res, 403, secErr);
+      return;
+    }
+
     if (await handleApi(req, res, pathname)) return;
 
     if (req.method === 'GET' || req.method === 'HEAD') {
@@ -2229,8 +2254,9 @@ process.on('SIGINT', () => {
   server.close(() => process.exit(0));
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, BIND_HOST, () => {
   console.log('Pi Manager');
+  console.log('  bind:     ' + BIND_HOST + ':' + PORT);
   console.log('  http://localhost:' + PORT);
   console.log('  models:   ' + MODELS_FILE);
   console.log('  settings: ' + SETTINGS_FILE);

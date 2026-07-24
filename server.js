@@ -391,10 +391,11 @@ async function handleModelsApi(req, res, pathname, method) {
   if (pathname === '/api/config') {
     if (method === 'GET') {
       try {
+        // 本地 loopback 控制台：默认返回真实配置；?redact=1 才脱敏
         const raw = readModelsFile();
         const url = new URL(req.url || '/', 'http://localhost');
-        const reveal = url.searchParams.get('reveal') === '1';
-        sendJson(res, 200, reveal ? raw : redactModelsConfig(raw));
+        const redact = url.searchParams.get('redact') === '1';
+        sendJson(res, 200, redact ? redactModelsConfig(raw) : raw);
       } catch (e) {
         mapError(res, e);
       }
@@ -458,9 +459,10 @@ async function handleModelsApi(req, res, pathname, method) {
     if (parts.length === 1) {
       if (method === 'GET') {
         try {
+          // 默认返回真实 Key；?redact=1 才脱敏
           const url = new URL(req.url || '/', 'http://localhost');
-          const reveal = url.searchParams.get('reveal') === '1';
-          sendJson(res, 200, getProvider(providerId, { revealKey: reveal }));
+          const redact = url.searchParams.get('redact') === '1';
+          sendJson(res, 200, getProvider(providerId, { revealKey: !redact }));
         } catch (e) {
           mapError(res, e);
         }
@@ -758,8 +760,9 @@ async function handleOpenvlApi(req, res, pathname, method) {
       if (id == null) return sendError(res, 400, 'invalid id'), true;
       if (method === 'GET') {
         try {
-          const reveal = (req.url || '').includes('reveal=1');
-          sendJson(res, 200, openvl.getProfile(id, { revealKey: reveal }));
+          // 本地默认返回真实 Key；?redact=1 才脱敏
+          const redact = (req.url || '').includes('redact=1');
+          sendJson(res, 200, openvl.getProfile(id, { revealKey: !redact }));
         } catch (e) {
           mapError(res, e);
         }

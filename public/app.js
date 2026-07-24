@@ -1623,48 +1623,18 @@ function fillModelForm(m) {
   $('#m-headers').value = m.headers ? JSON.stringify(m.headers, null, 2) : '';
 }
 
-async function toggleKey() {
+function toggleKey() {
   const inp = $('#p-apiKey');
   if (!inp) return;
   if (!state.keyVisible) {
-    // 显示：默认详情脱敏，需 ?reveal=1 再拉明文（与 OpenVL 一致）
+    // 显示：本地详情已带真实 Key，直接从 storedApiKey 填入
     state.keyVisible = true;
     inp.type = 'text';
     $('#toggle-key').textContent = '隐藏';
-    if (state.keyIsPlaceholder || (state.keepApiKey && !state.storedApiKey)) {
-      if (state.storedApiKey) {
-        inp.value = state.storedApiKey;
-        state.keyIsPlaceholder = false;
-        state.keepApiKey = true;
-      } else if (state.currentProviderId) {
-        const prevLabel = $('#toggle-key')?.textContent;
-        if ($('#toggle-key')) $('#toggle-key').textContent = '…';
-        try {
-          const p = await api(
-            '/api/providers/' +
-              encodeURIComponent(state.currentProviderId) +
-              '?reveal=1'
-          );
-          if (p && p.apiKey) {
-            state.storedApiKey = String(p.apiKey);
-            inp.value = state.storedApiKey;
-            state.keyIsPlaceholder = false;
-            state.keepApiKey = true;
-          } else {
-            inp.value = '';
-            state.keyIsPlaceholder = false;
-          }
-        } catch (e) {
-          showToast('读取 Key 失败: ' + e.message, false);
-          inp.value = '';
-          state.keyIsPlaceholder = false;
-        } finally {
-          if ($('#toggle-key')) $('#toggle-key').textContent = prevLabel || '隐藏';
-        }
-      } else {
-        inp.value = '';
-        state.keyIsPlaceholder = false;
-      }
+    if (state.keyIsPlaceholder) {
+      inp.value = state.storedApiKey || '';
+      state.keyIsPlaceholder = false;
+      state.keepApiKey = true;
     }
   } else {
     // 隐藏：若内容仍是已存 key 且未改，恢复圆点；用户改过的内容则 password 遮罩
@@ -1676,9 +1646,6 @@ async function toggleKey() {
       state.keyIsPlaceholder = true;
     } else if (state.keepApiKey && !inp.value && state.storedApiKey) {
       inp.value = maskDots(state.storedApiKey.length);
-      state.keyIsPlaceholder = true;
-    } else if (state.keepApiKey && !state.storedApiKey && isKeyMaskValue(inp.value)) {
-      // 尚未 reveal 过，保持圆点占位
       state.keyIsPlaceholder = true;
     } else {
       state.keyIsPlaceholder = false;
@@ -3149,15 +3116,17 @@ function selectOpenvlOllama(confirmLeave) {
 }
 
 function fillOpenvlForm(p) {
-  state.openvlKeepKey = !!p.hasKey;
+  const hasKey = !!(p.hasKey || (p.apiKey && String(p.apiKey).length));
+  state.openvlKeepKey = hasKey;
   state.openvlKeyVisible = false;
-  state.openvlKeyPlaceholder = !!p.hasKey;
-  state.openvlStoredKey = '';
+  state.openvlKeyPlaceholder = hasKey;
+  state.openvlStoredKey = hasKey ? String(p.apiKey || '') : '';
   $('#ov-name').value = p.name || '';
   $('#ov-active-label').value = p.active ? '当前生效（已同步 config.env）' : '未激活';
   $('#ov-apiKey').type = 'password';
-  if (p.hasKey) {
-    $('#ov-apiKey').value = maskDots(12);
+  if (hasKey) {
+    const len = state.openvlStoredKey ? state.openvlStoredKey.length : 12;
+    $('#ov-apiKey').value = maskDots(len);
     $('#ov-apiKey').placeholder = '';
   } else {
     $('#ov-apiKey').value = '';
@@ -3265,20 +3234,10 @@ function toggleOpenvlKey() {
     state.openvlKeyVisible = true;
     inp.type = 'text';
     $('#ov-toggle-key').textContent = '隐藏';
-    if (state.openvlKeyPlaceholder && state.currentOpenvlId) {
-      api('/api/openvl/profiles/' + encodeURIComponent(state.currentOpenvlId) + '?reveal=1')
-        .then((p) => {
-          if (p.apiKey) {
-            state.openvlStoredKey = p.apiKey;
-            inp.value = p.apiKey;
-            state.openvlKeyPlaceholder = false;
-            state.openvlKeepKey = true;
-          }
-        })
-        .catch(() => {
-          inp.value = '';
-          state.openvlKeyPlaceholder = false;
-        });
+    if (state.openvlKeyPlaceholder) {
+      inp.value = state.openvlStoredKey || '';
+      state.openvlKeyPlaceholder = false;
+      state.openvlKeepKey = true;
     }
   } else {
     state.openvlKeyVisible = false;
@@ -3290,6 +3249,9 @@ function toggleOpenvlKey() {
       inp.value === state.openvlStoredKey
     ) {
       inp.value = maskDots(state.openvlStoredKey ? state.openvlStoredKey.length : 12);
+      state.openvlKeyPlaceholder = true;
+    } else if (state.openvlKeepKey && !inp.value && state.openvlStoredKey) {
+      inp.value = maskDots(state.openvlStoredKey.length);
       state.openvlKeyPlaceholder = true;
     }
   }

@@ -195,7 +195,7 @@ npm install -g @scp3500/openvl
 > 默认 **只监听 127.0.0.1**。**不要把端口裸暴露到公网。**
 
 - 默认 bind loopback；写请求校验 Host / Origin  
-- `GET /api/config` 与 Provider 详情默认 **脱敏 API Key**（`?reveal=1` 才给明文）  
+- 本地 loopback 控制台：Provider / OpenVL 详情默认返回真实 Key；`?redact=1` 才脱敏  
 - 工作区路径：`..` + symlink 越界拒绝；bootstrap **先校验再写盘**  
 - Markdown 预览 / 聊天走 `md-safe.js`（剥 raw HTML + 白名单标签）  
 - 会话 cleanup 测试必须使用临时 `SESSIONS_DIR`，禁止动真实会话  

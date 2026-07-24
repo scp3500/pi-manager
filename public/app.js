@@ -1623,19 +1623,48 @@ function fillModelForm(m) {
   $('#m-headers').value = m.headers ? JSON.stringify(m.headers, null, 2) : '';
 }
 
-function toggleKey() {
+async function toggleKey() {
   const inp = $('#p-apiKey');
   if (!inp) return;
   if (!state.keyVisible) {
-    // 显示：若仍是占位圆点，换成真实 key（若有）
+    // 显示：默认详情脱敏，需 ?reveal=1 再拉明文（与 OpenVL 一致）
     state.keyVisible = true;
     inp.type = 'text';
     $('#toggle-key').textContent = '隐藏';
-    if (state.keyIsPlaceholder) {
-      inp.value = state.storedApiKey || '';
-      state.keyIsPlaceholder = false;
-      // 仍视为保持，除非用户继续改
-      state.keepApiKey = true;
+    if (state.keyIsPlaceholder || (state.keepApiKey && !state.storedApiKey)) {
+      if (state.storedApiKey) {
+        inp.value = state.storedApiKey;
+        state.keyIsPlaceholder = false;
+        state.keepApiKey = true;
+      } else if (state.currentProviderId) {
+        const prevLabel = $('#toggle-key')?.textContent;
+        if ($('#toggle-key')) $('#toggle-key').textContent = '…';
+        try {
+          const p = await api(
+            '/api/providers/' +
+              encodeURIComponent(state.currentProviderId) +
+              '?reveal=1'
+          );
+          if (p && p.apiKey) {
+            state.storedApiKey = String(p.apiKey);
+            inp.value = state.storedApiKey;
+            state.keyIsPlaceholder = false;
+            state.keepApiKey = true;
+          } else {
+            inp.value = '';
+            state.keyIsPlaceholder = false;
+          }
+        } catch (e) {
+          showToast('读取 Key 失败: ' + e.message, false);
+          inp.value = '';
+          state.keyIsPlaceholder = false;
+        } finally {
+          if ($('#toggle-key')) $('#toggle-key').textContent = prevLabel || '隐藏';
+        }
+      } else {
+        inp.value = '';
+        state.keyIsPlaceholder = false;
+      }
     }
   } else {
     // 隐藏：若内容仍是已存 key 且未改，恢复圆点；用户改过的内容则 password 遮罩
@@ -1647,6 +1676,9 @@ function toggleKey() {
       state.keyIsPlaceholder = true;
     } else if (state.keepApiKey && !inp.value && state.storedApiKey) {
       inp.value = maskDots(state.storedApiKey.length);
+      state.keyIsPlaceholder = true;
+    } else if (state.keepApiKey && !state.storedApiKey && isKeyMaskValue(inp.value)) {
+      // 尚未 reveal 过，保持圆点占位
       state.keyIsPlaceholder = true;
     } else {
       state.keyIsPlaceholder = false;

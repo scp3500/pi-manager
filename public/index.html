@@ -647,7 +647,7 @@
               </label>
               <label>思考程度 thinking
                 <select id="a-thinking">
-                  <option value="">(跟随默认 / 未写)</option>
+                  <option value="">跟随全局默认</option>
                   <option value="off">off</option>
                   <option value="minimal">minimal</option>
                   <option value="low">low</option>
@@ -656,7 +656,7 @@
                   <option value="xhigh">xhigh</option>
                   <option value="max">max</option>
                 </select>
-                <span class="hint">写入 agent frontmatter；Pi 官方 subagent 当前未必读取，仅作记录/将来用</span>
+                <span class="hint">保存后编码为 model 的 :thinking 后缀，subagent 作为 pi --model 生效；留空=不写后缀、跟随全局默认</span>
               </label>
             </div>
             <label>分类来源

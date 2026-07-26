@@ -10,6 +10,38 @@ function esc(s) {
 const TLM_LEVELS = ['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'];
 
 /**
+ * 拆分 model spec 中的 thinking 后缀（只认最后一个合法档位，如 provider/id:high）。
+ * 与 Pi CLI `--model sonnet:high` 及后端 parse 规则一致；非档位冒号（如 :exacto）保留在 model 内。
+ * @param {string} spec
+ * @returns {{ model: string, thinking: string }}
+ */
+function parseModelSpec(spec) {
+  const s = String(spec ?? '').trim();
+  if (!s) return { model: '', thinking: '' };
+  const i = s.lastIndexOf(':');
+  if (i <= 0) return { model: s, thinking: '' };
+  const suffix = s.slice(i + 1);
+  if (TLM_LEVELS.includes(suffix)) {
+    return { model: s.slice(0, i), thinking: suffix };
+  }
+  return { model: s, thinking: '' };
+}
+
+/**
+ * 合成 model + :thinking 后缀；thinking 空则返回纯 model。
+ * @param {string} model
+ * @param {string} thinking
+ * @returns {string}
+ */
+function composeModelSpec(model, thinking) {
+  const m = String(model ?? '').trim();
+  const t = String(thinking ?? '').trim();
+  if (!m) return '';
+  if (!t || !TLM_LEVELS.includes(t)) return m;
+  return m + ':' + t;
+}
+
+/**
  * 新建/导入默认思考档位映射（全量覆盖，避免漏档）。
  * 偏保守：off→none；xhigh/max 收到 high（多数供应商无更高档）。
  * 编辑器里仍可改成恒等或其它厂商值。
@@ -2717,11 +2749,15 @@ function renderAgentList() {
         btn.type = 'button';
         btn.className =
           'side-item' + (name === state.currentAgentName ? ' active' : '');
+        const parsed = parseModelSpec(a.model || '');
+        const pureModel = parsed.model || '';
+        const thinking = parsed.thinking || a.thinking || '';
         btn.innerHTML = `
           <div class="si-title">${esc(name)}</div>
           <div class="si-sub">${esc(a.description || '无描述')}</div>
           <div class="si-tags">
-            <span class="badge accent">${esc(a.model || '默认模型')}</span>
+            <span class="badge accent">${esc(pureModel || '默认模型')}</span>
+            ${thinking ? `<span class="badge">${esc(thinking)}</span>` : ''}
             ${
               a.categorySource === 'inferred'
                 ? '<span class="badge">自动分类</span>'
@@ -2820,9 +2856,13 @@ function fillAgentForm(a) {
   $('#a-name').value = a.name || '';
   $('#a-description').value = a.description || '';
   $('#a-prompt').value = a.prompt || '';
-  fillAgentModelSelect(a.model || '');
+  // 防御性拆分：后端可能返回纯 model+thinking，或尚未迁移的完整 spec
+  const parsed = parseModelSpec(a.model || '');
+  // 合法后缀优先于独立 thinking 字段
+  const thinking = parsed.thinking || a.thinking || '';
+  fillAgentModelSelect(parsed.model || '');
   const th = $('#a-thinking');
-  if (th) th.value = a.thinking || '';
+  if (th) th.value = thinking;
   fillCategorySelect(a.category || 'other');
   const src = $('#a-category-source');
   if (src) {
@@ -2837,13 +2877,22 @@ function fillAgentForm(a) {
 async function saveAgent() {
   try {
     syncToolsHidden();
+    const pureModel = ($('#a-model') && $('#a-model').value) || '';
+    const thinking = ($('#a-thinking') && $('#a-thinking').value) || '';
+    if (thinking && !TLM_LEVELS.includes(thinking)) {
+      return showToast('思考档位无效，请选择合法档或留空', false);
+    }
+    if (thinking && !pureModel.trim()) {
+      return showToast('请先选择模型或清空思考档', false);
+    }
+    // compose 后 model 为完整 spec（provider/id:high）；thinking 空串由后端删独立字段
     const payload = {
       name: $('#a-name').value.trim(),
       description: $('#a-description').value,
       category: $('#a-category').value,
       tools: $('#a-tools').value,
-      model: $('#a-model').value,
-      thinking: ($('#a-thinking') && $('#a-thinking').value) || '',
+      model: composeModelSpec(pureModel, thinking),
+      thinking: '',
       prompt: $('#a-prompt').value,
     };
     if (!payload.name) return showToast('名称不能为空', false);

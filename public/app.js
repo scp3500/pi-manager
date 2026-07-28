@@ -74,9 +74,6 @@ const state = {
   currentAgentName: null,
   agentDetail: null,
   agentsDirty: false,
-  swarmConfig: { version: 1, roles: [] },
-  swarmPresets: [],
-  swarmDirty: false,
   toolPool: { builtins: [], presets: {} },
   selectedTools: new Set(),
   activeToolPreset: 'custom',
@@ -142,7 +139,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   bindNav();
   bindModelsUI();
   bindAgentsUI();
-  if (typeof bindSwarmUI === 'function') bindSwarmUI();
   bindOpenvlUI();
   if (typeof bindConsoleUI === 'function') bindConsoleUI();
   if (typeof bindContentPages === 'function') bindContentPages();
@@ -154,7 +150,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadDefaults(),
     loadFlatModels(),
     loadAgents(),
-    typeof loadSwarmConfig === 'function' ? loadSwarmConfig() : Promise.resolve(),
     loadToolPool(),
     loadCategories(),
     loadOpenvl(),
@@ -491,7 +486,6 @@ function routeFromHash() {
   else if (pathOnly.startsWith('runtime')) next = 'runtime';
   else if (pathOnly.startsWith('trash')) next = 'trash';
   else if (pathOnly.startsWith('agents')) next = 'agents';
-  else if (pathOnly.startsWith('swarm')) next = 'swarm';
   else if (pathOnly.startsWith('openvl')) next = 'openvl';
   else if (pathOnly.startsWith('prompt')) next = 'prompt';
   else if (pathOnly.startsWith('skills')) next = 'skills';
@@ -538,7 +532,6 @@ function routeFromHash() {
   if (typeof closeNavMore === 'function') closeNavMore();
   $('#page-models')?.classList.toggle('hidden', next !== 'models');
   $('#page-agents')?.classList.toggle('hidden', next !== 'agents');
-  $('#page-swarm')?.classList.toggle('hidden', next !== 'swarm');
   $('#page-openvl')?.classList.toggle('hidden', next !== 'openvl');
   $('#page-dashboard')?.classList.toggle('hidden', next !== 'dashboard');
   $('#page-sessions')?.classList.toggle('hidden', next !== 'sessions');
@@ -605,8 +598,6 @@ function routeFromHash() {
     } else {
       showAgentEmpty();
     }
-  } else if (next === 'swarm') {
-    if (typeof enterSwarmRoute === 'function') enterSwarmRoute();
   } else if (next === 'openvl') {
     renderOpenvlList();
     if (state.openvlAvailable === false) showOpenvlEmpty();
@@ -649,7 +640,6 @@ function setDirty(kind, dirty) {
     models: ['modelsDirty', 'models-dirty'],
     agents: ['agentsDirty', 'agents-dirty'],
     workflow: ['workflowDirty', 'workflow-dirty'],
-    swarm: ['swarmDirty', 'swarm-dirty'],
     openvl: ['openvlDirty', 'openvl-dirty'],
     prompt: ['promptDirty', 'prompt-dirty'],
     skills: ['skillsDirty', 'skills-dirty'],
@@ -691,7 +681,6 @@ function isAnyDirty() {
   return !!(
     state.modelsDirty ||
     state.agentsDirty ||
-    state.swarmDirty ||
     state.workflowDirty ||
     state.openvlDirty ||
     state.promptDirty ||
@@ -715,7 +704,6 @@ function updateGlobalSaveUI() {
       const parts = [];
       if (state.modelsDirty) parts.push('模型');
       if (state.agentsDirty) parts.push('子代理');
-      if (state.swarmDirty) parts.push('集群');
       if (state.openvlDirty) parts.push('识图');
       if (state.promptDirty) parts.push('提示词');
       if (state.skillsDirty) parts.push('Skills');
@@ -779,16 +767,6 @@ async function globalSave() {
       await saveAgent();
       updateGlobalSaveUI();
       return !state.agentsDirty;
-    }
-
-    if (state.route === 'swarm') {
-      if (!state.swarmDirty) {
-        showToast('没有需要保存的修改');
-        return true;
-      }
-      const ok = await saveSwarmConfig();
-      updateGlobalSaveUI();
-      return ok;
     }
 
     if (state.route === 'openvl') {

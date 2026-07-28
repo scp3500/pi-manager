@@ -1290,7 +1290,6 @@ function routeHashFor(route) {
     trash: '#/trash',
     models: '#/models',
     agents: '#/agents',
-    swarm: '#/swarm',
     openvl: '#/openvl',
     prompt: '#/prompt',
     skills: '#/skills',

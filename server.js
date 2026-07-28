@@ -10,7 +10,6 @@ const {
   OPENVL_AVAILABLE,
   MANAGER_CONFIG_FILE,
   AGENTS_MD_FILE,
-  SWARM_CONFIG_FILE,
   PORT,
   BODY_LIMIT,
 } = require('./lib/config');
@@ -22,7 +21,6 @@ const {
 const BIND_HOST = parseBindHost();
 const { validateProviderId, validateModelId } = require('./lib/model-security');
 const { validateAgentName } = require('./lib/agent-security');
-const { PRESETS: SWARM_ROLE_PRESETS, readSwarmConfig, writeSwarmConfig } = require('./lib/swarm');
 const {
   listProviders,
   getProvider,
@@ -241,33 +239,6 @@ function mapError(res, e) {
   sendError(res, 500, 'Internal error');
 }
 
-// ── Swarm API ───────────────────────────────────────────────────────────────
-
-async function handleSwarmApi(req, res, pathname, method) {
-  if (method === 'GET' && pathname === '/api/swarm') {
-    try {
-      sendJson(res, 200, readSwarmConfig());
-    } catch (e) {
-      mapError(res, e);
-    }
-    return true;
-  }
-  if (method === 'GET' && pathname === '/api/swarm/presets') {
-    sendJson(res, 200, SWARM_ROLE_PRESETS);
-    return true;
-  }
-  if (method === 'PUT' && pathname === '/api/swarm') {
-    try {
-      sendJson(res, 200, writeSwarmConfig(await readBody(req)));
-    } catch (e) {
-      if (e.status) sendError(res, e.status, e.message);
-      else mapError(res, e);
-    }
-    return true;
-  }
-  return false;
-}
-
 // ── Agents API (from subagent-manager) ──────────────────────────────────────
 
 async function handleAgentsApi(req, res, pathname, method) {
@@ -364,7 +335,6 @@ async function handleModelsApi(req, res, pathname, method) {
       modelsFile: MODELS_FILE,
       settingsFile: SETTINGS_FILE,
       agentsDir: AGENTS_DIR,
-      swarmConfigFile: SWARM_CONFIG_FILE,
       agentsMdFile: AGENTS_MD_FILE,
       managerConfigFile: MANAGER_CONFIG_FILE,
       openvlAvailable: !!OPENVL_AVAILABLE,
@@ -2190,7 +2160,6 @@ async function handleChatApi(req, res, pathname, method) {
 
 async function handleApi(req, res, pathname) {
   const method = req.method;
-  if (await handleSwarmApi(req, res, pathname, method)) return true;
   if (await handleAgentsApi(req, res, pathname, method)) return true;
   if (await handleModelsApi(req, res, pathname, method)) return true;
   if (await handleOpenvlApi(req, res, pathname, method)) return true;

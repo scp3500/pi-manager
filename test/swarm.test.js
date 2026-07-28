@@ -84,6 +84,16 @@ describe('swarm manager config', () => {
     assert.throws(() => writeSwarmConfig(mutating), /only allow/);
   });
 
+  it('renders a roster editor instead of expanding every role form at once', () => {
+    const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+    const ui = fs.readFileSync(path.join(__dirname, '..', 'public', 'swarm-ui.js'), 'utf8');
+    assert.match(html, /id="swarm-role-list"/);
+    assert.match(html, /id="swarm-role-editor"/);
+    assert.match(html, /data-swarm-panel="delivery"/);
+    assert.match(ui, /data-fallback/);
+    assert.doesNotMatch(ui, /multiple>/);
+  });
+
   it('creates a rolling backup on update', () => {
     writeSwarmConfig(config());
     const updated = config();

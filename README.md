@@ -65,7 +65,7 @@ cd pi-manager && npm start
 | **运行** | 在干活 / 在想 / 已退出；进程探测减少假运行 |
 | **模型** | 供应商 CRUD、远程拉模型、默认 Provider/Model |
 | **子代理** | 编辑 `agents/*.md`、工具权限预设、工作流规范 |
-| **集群** | 编辑 `swarm.json` 的 3–5 人角色、主模型、fallback 和验证命令；复用模型页已有 provider/model |
+| **集群** | 左侧团队名册 + 单角色编辑器，管理 3–5 人职责、主模型、fallback、只读工具与交付命令；复用模型页已有 provider/model |
 | **用量** | token / 费用趋势；与状态栏同一套 `usage.cost.total` |
 | **会话** | 搜索、清理、回收站还原 |
 | **识图** | 集成自研 [OpenVL](https://github.com/scp3500/openvl)；教程页可一键安装 |

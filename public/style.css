@@ -6437,63 +6437,247 @@ body.chat-open #page-runtime .content.runtime-wrap {
   }
 }
 
-/* ── Swarm 人员配置 ───────────────────────────────────── */
-.swarm-page {
-  display: grid;
-  gap: var(--sp-4);
+/* ── Swarm 编排工作台 ─────────────────────────────────── */
+.swarm-split {
+  grid-template-columns: 300px minmax(0, 1fr);
 }
-.swarm-role-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
-  gap: var(--sp-3);
+.swarm-side {
+  background: var(--surface-raised);
 }
-.swarm-role {
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  background: var(--surface-1);
-  padding: var(--sp-4);
+.swarm-side .side-switch {
+  margin: var(--sp-3) var(--sp-3) var(--sp-2);
+}
+.swarm-roster-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  margin: 0 var(--sp-3) var(--sp-2);
+  padding: 0 var(--sp-1) var(--sp-2);
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--muted);
+  font-size: var(--fs-xs);
+}
+.swarm-roster-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.swarm-roster-meta svg {
+  width: 14px;
+  height: 14px;
+}
+.swarm-roster-item.side-item {
   display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 10px var(--sp-3);
+}
+.swarm-roster-icon,
+.swarm-editor-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg-3);
+  color: var(--muted);
+}
+.swarm-roster-icon {
+  width: 32px;
+  height: 32px;
+}
+.swarm-roster-icon svg {
+  width: 16px;
+  height: 16px;
+}
+.swarm-roster-icon.role-investigator,
+.swarm-editor-icon.role-investigator { color: var(--accent); background: var(--accent-soft); border-color: rgba(var(--accent-rgb), 0.3); }
+.swarm-roster-icon.role-implementer,
+.swarm-editor-icon.role-implementer { color: var(--ok); background: rgba(var(--ok-rgb), 0.1); border-color: rgba(var(--ok-rgb), 0.28); }
+.swarm-roster-icon.role-reviewer,
+.swarm-editor-icon.role-reviewer { color: var(--warn); background: rgba(var(--warn-rgb), 0.1); border-color: rgba(var(--warn-rgb), 0.28); }
+.swarm-roster-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  text-align: left;
+}
+.swarm-roster-chevron {
+  width: 15px;
+  height: 15px;
+  color: var(--faint);
+}
+.swarm-roster-item.active .swarm-roster-chevron { color: var(--accent); }
+.swarm-editor-head {
+  align-items: center;
+}
+.swarm-editor-title {
+  display: flex;
+  align-items: center;
   gap: var(--sp-3);
   min-width: 0;
 }
-.swarm-role-head {
-  display: flex;
+.swarm-editor-icon {
+  width: 40px;
+  height: 40px;
+}
+.swarm-editor-icon svg {
+  width: 20px;
+  height: 20px;
+}
+.swarm-editor-title h2,
+#swarm-delivery-editor .content-head h2 {
+  margin: 1px 0 0;
+  font-size: var(--fs-title);
+  line-height: 1.25;
+}
+.swarm-editor-kicker {
+  display: block;
+  color: var(--faint);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.swarm-role-form,
+.swarm-delivery-form {
+  max-width: 900px;
+}
+.swarm-config-block,
+.swarm-delivery-block {
+  padding: var(--sp-4);
+}
+.swarm-config-block .block-head,
+.swarm-delivery-block .block-head {
+  align-items: flex-start;
+  margin-bottom: var(--sp-3);
+}
+.swarm-config-block .block-head > svg,
+.swarm-delivery-block .block-head > svg {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  color: var(--accent);
+}
+.swarm-config-block .block-head h3,
+.swarm-delivery-block .block-head h3 {
+  color: var(--text);
+  font-size: var(--fs-md);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.swarm-config-block .block-head p,
+.swarm-delivery-block .block-head p {
+  margin-top: 2px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-normal);
+}
+.swarm-fallback-picker {
+  margin-top: var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+.swarm-fallback-picker summary {
+  min-height: var(--ctrl);
+  display: grid;
+  grid-template-columns: 1fr auto 16px;
   align-items: center;
   gap: var(--sp-2);
+  padding: 0 var(--sp-3);
+  cursor: pointer;
+  list-style: none;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semi);
 }
-.swarm-role-head strong { flex: 1; font-size: var(--fs-md); }
-.swarm-role .form-grid,
-.swarm-settings-band .form-grid {
+.swarm-fallback-picker summary::-webkit-details-marker { display: none; }
+.swarm-fallback-picker summary strong {
+  color: var(--text);
+  font-size: var(--fs-xs);
+}
+.swarm-fallback-picker summary svg {
+  width: 15px;
+  height: 15px;
+  transition: transform var(--t);
+}
+.swarm-fallback-picker[open] summary svg { transform: rotate(180deg); }
+.swarm-model-options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--sp-3);
-}
-.swarm-settings-band .form-grid.three {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-.swarm-settings-band {
+  gap: 2px;
+  max-height: 260px;
+  overflow: auto;
+  padding: var(--sp-2);
   border-top: 1px solid var(--border-subtle);
-  padding-top: var(--sp-4);
-  display: grid;
-  gap: var(--sp-3);
 }
-.swarm-settings-band h3 { margin: 0; font-size: var(--fs-md); }
-.swarm-tool-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-3);
-}
-.swarm-tool-row label {
-  display: inline-flex;
-  flex-direction: row;
+.swarm-model-option {
+  display: grid !important;
+  grid-template-columns: 16px minmax(0, 1fr);
   align-items: center;
-  gap: var(--sp-1);
+  gap: var(--sp-2) !important;
+  min-height: 42px;
+  padding: 6px var(--sp-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
 }
-.swarm-fallback { min-height: 88px; }
+.swarm-model-option:hover { background: var(--row-hover); }
+.swarm-model-option > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.swarm-model-option b,
+.swarm-model-option small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.swarm-model-option b { color: var(--text); font-size: var(--fs-sm); }
+.swarm-model-option small { color: var(--faint); font-size: var(--fs-xs); }
+.swarm-tool-pool {
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  margin: var(--sp-3) 0 0;
+}
+.swarm-advanced .grid-2 { padding-top: var(--sp-1); }
+#swarm-role-editor,
+#swarm-delivery-editor {
+  padding-top: var(--sp-4);
+}
+#swarm-role-editor .btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+@media (max-width: 1000px) {
+  .swarm-split { grid-template-columns: 260px minmax(0, 1fr); }
+  .swarm-tool-pool { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+  .swarm-model-options { grid-template-columns: 1fr; }
+}
 @media (max-width: 720px) {
-  .swarm-role .form-grid,
-  .swarm-settings-band .form-grid,
-  .swarm-settings-band .form-grid.three { grid-template-columns: 1fr; }
+  .swarm-toolbar .toolbar-actions { width: 100%; }
+  .swarm-split {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+  }
+  .swarm-side {
+    flex: 0 0 auto;
+    max-height: 290px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .swarm-side .side-list { max-height: 190px; }
+  #swarm-role-editor,
+  #swarm-delivery-editor { overflow: visible; }
+}
+@media (max-width: 520px) {
+  .swarm-tool-pool { grid-template-columns: 1fr 1fr; }
+  .swarm-editor-head { align-items: flex-start; }
+  .swarm-editor-title { align-items: flex-start; }
+  .swarm-editor-head .content-actions { margin-left: 0; }
 }
 
 /* ── 动效收口：减少动态偏好时全站克制 ─────────────────── */

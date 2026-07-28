@@ -6437,6 +6437,65 @@ body.chat-open #page-runtime .content.runtime-wrap {
   }
 }
 
+/* ── Swarm 人员配置 ───────────────────────────────────── */
+.swarm-page {
+  display: grid;
+  gap: var(--sp-4);
+}
+.swarm-role-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: var(--sp-3);
+}
+.swarm-role {
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--surface-1);
+  padding: var(--sp-4);
+  display: grid;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+.swarm-role-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.swarm-role-head strong { flex: 1; font-size: var(--fs-md); }
+.swarm-role .form-grid,
+.swarm-settings-band .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-3);
+}
+.swarm-settings-band .form-grid.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.swarm-settings-band {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--sp-4);
+  display: grid;
+  gap: var(--sp-3);
+}
+.swarm-settings-band h3 { margin: 0; font-size: var(--fs-md); }
+.swarm-tool-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+.swarm-tool-row label {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--sp-1);
+}
+.swarm-fallback { min-height: 88px; }
+@media (max-width: 720px) {
+  .swarm-role .form-grid,
+  .swarm-settings-band .form-grid,
+  .swarm-settings-band .form-grid.three { grid-template-columns: 1fr; }
+}
+
 /* ── 动效收口：减少动态偏好时全站克制 ─────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .page:not(.hidden) { animation: none; }

@@ -6,7 +6,7 @@
 
 ### [Pi Coding Agent](https://github.com/badlogic/pi-mono) 的本地 Web 控制台
 
-模型 · 子代理 · 运行态 · 用量 · 会话 · 识图 · 工作区  
+模型 · 子代理 · 集群 · 运行态 · 用量 · 会话 · 识图 · 工作区
 零 npm 依赖 · 打开 `localhost:3001` 即可
 
 <br/>
@@ -65,6 +65,7 @@ cd pi-manager && npm start
 | **运行** | 在干活 / 在想 / 已退出；进程探测减少假运行 |
 | **模型** | 供应商 CRUD、远程拉模型、默认 Provider/Model |
 | **子代理** | 编辑 `agents/*.md`、工具权限预设、工作流规范 |
+| **集群** | 编辑 `swarm.json` 的 3–5 人角色、主模型、fallback 和验证命令；复用模型页已有 provider/model |
 | **用量** | token / 费用趋势；与状态栏同一套 `usage.cost.total` |
 | **会话** | 搜索、清理、回收站还原 |
 | **识图** | 集成自研 [OpenVL](https://github.com/scp3500/openvl)；教程页可一键安装 |
@@ -87,7 +88,7 @@ cd pi-manager && npm start
            ▼                  ▼                  ▼
    ~/.pi/agent/*         工作区映射         OpenVL（自研，可选）
    models settings       memory/knowledge   @scp3500/openvl
-   agents sessions       pi-manager.json    profiles + CLI
+   agents swarm sessions pi-manager.json    profiles + CLI
 ```
 
 | 组件 | 角色 |
@@ -111,6 +112,7 @@ cd pi-manager && npm start
 ├── models.json
 ├── settings.json
 ├── agents/
+├── swarm.json
 └── sessions/
 ```
 
@@ -184,6 +186,7 @@ npm install -g @scp3500/openvl
 | `PI_MANAGER_ALLOW_REMOTE` | 未设置 | 设为 `1` 才允许非 loopback Host |
 | `PI_AGENT_DIR` | `~/.pi/agent` | Pi 配置根 |
 | `PI_MANAGER_CONFIG` | `$PI_AGENT_DIR/pi-manager.json` | 控制台配置 |
+| `SWARM_CONFIG_FILE` | `$PI_AGENT_DIR/swarm.json` | pi-swarm 人员与模型绑定 |
 | `SESSIONS_DIR` | `$PI_AGENT_DIR/sessions` | 会话目录（测试可指临时目录） |
 | `OPENVL_PKG_DIR` | 自动探测 | OpenVL 包目录 |
 
@@ -199,7 +202,8 @@ npm install -g @scp3500/openvl
 - 工作区路径：`..` + symlink 越界拒绝；bootstrap **先校验再写盘**  
 - Markdown 预览 / 聊天走 `md-safe.js`（剥 raw HTML + 白名单标签）  
 - 会话 cleanup 测试必须使用临时 `SESSIONS_DIR`，禁止动真实会话  
-- 写操作修改真实 Pi 配置（滚动 `.bak`）  
+- `swarm.json` 只保存模型标识、公开价格和角色策略，不复制 Provider API key
+- 写操作修改真实 Pi 配置（滚动 `.bak`）
 - 教程一键安装仅白名单：  
   - `npm install -g @scp3500/openvl`  
   - `pi install npm:…`  

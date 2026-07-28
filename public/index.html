@@ -37,6 +37,9 @@
       <a href="#/agents" class="tab" data-route="agents" title="子代理">
         <i data-lucide="bot"></i><span class="tab-label">子代理</span>
       </a>
+      <a href="#/swarm" class="tab" data-route="swarm" title="集群">
+        <i data-lucide="network"></i><span class="tab-label">集群</span>
+      </a>
       <a href="#/memory" class="tab" data-route="memory" title="记忆">
         <i data-lucide="notebook-pen"></i><span class="tab-label">记忆</span>
       </a>
@@ -683,6 +686,38 @@
               <textarea id="a-prompt" rows="16" class="mono"></textarea>
             </label>
           </form>
+        </section>
+      </div>
+    </section>
+
+    <!-- ═══════════════ SWARM ═══════════════ -->
+    <section id="page-swarm" class="page hidden">
+      <div class="toolbar">
+        <div>
+          <div class="toolbar-title">代理集群</div>
+          <p class="page-hint">配置 3–5 个临时团队角色；模型直接引用「模型」页已有的 provider/model</p>
+        </div>
+        <div class="toolbar-actions">
+          <span id="swarm-dirty" class="status saved">已保存</span>
+          <button type="button" id="swarm-reset-presets" class="btn ghost sm">
+            <i data-lucide="rotate-ccw"></i><span>载入预设</span>
+          </button>
+          <button type="button" id="swarm-add-role" class="btn ghost sm icon-btn" title="添加角色" aria-label="添加角色">
+            <i data-lucide="user-plus"></i>
+          </button>
+        </div>
+      </div>
+      <div class="content swarm-page">
+        <div id="swarm-empty" class="empty hidden"><p>还没有人员。先载入四个预设角色，再为每个角色选择模型。</p></div>
+        <div id="swarm-roles" class="swarm-role-grid" aria-live="polite"></div>
+        <section class="swarm-settings-band" aria-labelledby="swarm-settings-title">
+          <h3 id="swarm-settings-title">验证与提交</h3>
+          <div class="form-grid three">
+            <label><span>验证程序</span><input id="swarm-verify-executable" type="text" value="npm"></label>
+            <label><span>参数</span><input id="swarm-verify-args" type="text" value="test" placeholder="test -- --runInBand"></label>
+            <label><span>超时（毫秒）</span><input id="swarm-verify-timeout" type="number" min="1000" step="1000" value="120000"></label>
+          </div>
+          <label><span>本地 commit 信息</span><input id="swarm-commit-message" type="text" value="chore: apply pi-swarm changes"></label>
         </section>
       </div>
     </section>
@@ -1373,6 +1408,7 @@ pi update --extensions</pre>
       <div class="help-item"><strong>怎么理解</strong><span>先配「模型」就能用大部分功能。记忆/知识库/识图是附加能力，没配会写明原因，不会锁死其它页。</span></div>
       <div class="help-item"><strong>模型</strong><span>填接口和密钥，管理模型，设默认项</span></div>
       <div class="help-item"><strong>子代理</strong><span>改各个子代理的设定；「工作流」是规则文档，要记忆文件夹才有</span></div>
+      <div class="help-item"><strong>集群</strong><span>配置临时团队角色，并从已有模型中选择主模型和 fallback</span></div>
       <div class="help-item"><strong>识图</strong><span>可选装 OpenVL（同作者）；没装只影响本页</span></div>
       <div class="help-item"><strong>提示词</strong><span>改 Pi 总说明和模板，可预览</span></div>
       <div class="help-item"><strong>记忆 / 知识库</strong><span>在网页里改对应文件夹里的文档；需先在「工作区」指定文件夹</span></div>
@@ -1405,6 +1441,7 @@ pi update --extensions</pre>
   <script src="/md-safe.js"></script>
   <script src="/diff-util.js"></script>
   <script src="/app.js"></script>
+  <script src="/swarm-ui.js"></script>
   <script src="/console-ui.js"></script>
   <script src="/content-pages.js"></script>
   <script src="/dash-sessions.js?v=no-jump-1"></script>

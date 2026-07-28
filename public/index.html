@@ -692,81 +692,32 @@
 
     <!-- ═══════════════ SWARM ═══════════════ -->
     <section id="page-swarm" class="page hidden">
-      <div class="toolbar swarm-toolbar">
+      <div class="toolbar">
         <div>
-          <div class="toolbar-title">集群编排 · <span class="muted" id="swarm-count">0</span></div>
-          <p class="page-hint">为一次开发闭环分配调查、实现与独立评审角色</p>
+          <div class="toolbar-title">代理集群</div>
+          <p class="page-hint">配置 3–5 个临时团队角色；模型直接引用「模型」页已有的 provider/model</p>
         </div>
         <div class="toolbar-actions">
           <span id="swarm-dirty" class="status saved">已保存</span>
           <button type="button" id="swarm-reset-presets" class="btn ghost sm">
-            <i data-lucide="rotate-ccw"></i><span>恢复四人组</span>
+            <i data-lucide="rotate-ccw"></i><span>载入预设</span>
           </button>
-          <button type="button" id="swarm-add-role" class="btn ghost sm" title="添加评审角色">
-            <i data-lucide="user-plus"></i><span>添加成员</span>
+          <button type="button" id="swarm-add-role" class="btn ghost sm icon-btn" title="添加角色" aria-label="添加角色">
+            <i data-lucide="user-plus"></i>
           </button>
         </div>
       </div>
-
-      <div class="split swarm-split">
-        <aside class="side swarm-side">
-          <div class="side-switch" id="swarm-side-switch" role="tablist" aria-label="集群配置视图">
-            <button type="button" class="side-switch-btn active" data-swarm-panel="roles">团队成员</button>
-            <button type="button" class="side-switch-btn" data-swarm-panel="delivery">交付设置</button>
+      <div class="content swarm-page">
+        <div id="swarm-empty" class="empty hidden"><p>还没有人员。先载入四个预设角色，再为每个角色选择模型。</p></div>
+        <div id="swarm-roles" class="swarm-role-grid" aria-live="polite"></div>
+        <section class="swarm-settings-band" aria-labelledby="swarm-settings-title">
+          <h3 id="swarm-settings-title">验证与提交</h3>
+          <div class="form-grid three">
+            <label><span>验证程序</span><input id="swarm-verify-executable" type="text" value="npm"></label>
+            <label><span>参数</span><input id="swarm-verify-args" type="text" value="test" placeholder="test -- --runInBand"></label>
+            <label><span>超时（毫秒）</span><input id="swarm-verify-timeout" type="number" min="1000" step="1000" value="120000"></label>
           </div>
-          <div class="swarm-roster-meta">
-            <span><i data-lucide="users"></i><b id="swarm-roster-count">0</b> / 5</span>
-            <span><i data-lucide="shield-check"></i><b id="swarm-reviewer-count">0</b> 名评审</span>
-          </div>
-          <div id="swarm-role-list" class="side-list" aria-label="团队成员"></div>
-        </aside>
-
-        <section class="content" id="swarm-empty">
-          <div class="empty">
-            <p>还没有团队成员</p>
-            <p class="page-hint-inline">恢复四人组后，再为每个职责绑定模型</p>
-          </div>
-        </section>
-
-        <section class="content hidden" id="swarm-role-editor">
-          <div id="swarm-role-editor-body"></div>
-        </section>
-
-        <section class="content hidden" id="swarm-delivery-editor">
-          <div class="content-head">
-            <div>
-              <span class="swarm-editor-kicker">仓库出口</span>
-              <h2>验证与提交</h2>
-            </div>
-          </div>
-          <form class="fields swarm-delivery-form" autocomplete="off">
-            <div class="block-lite swarm-delivery-block">
-              <div class="block-head">
-                <i data-lucide="badge-check"></i>
-                <div><h3>验收命令</h3><p class="muted">只有命令成功退出，工作流才允许进入完成或提交状态。</p></div>
-              </div>
-              <div class="grid-2">
-                <label>执行程序
-                  <input id="swarm-verify-executable" type="text" value="npm" spellcheck="false">
-                </label>
-                <label>参数
-                  <input id="swarm-verify-args" type="text" value="test" placeholder="test -- --runInBand" spellcheck="false">
-                </label>
-              </div>
-              <label>超时（毫秒）
-                <input id="swarm-verify-timeout" type="number" min="1000" step="1000" value="120000">
-              </label>
-            </div>
-            <div class="block-lite swarm-delivery-block">
-              <div class="block-head">
-                <i data-lucide="git-commit-horizontal"></i>
-                <div><h3>本地提交</h3><p class="muted">仅在 repo-autopilot 下提交 swarm 拥有的文件，不会 push。</p></div>
-              </div>
-              <label>Commit 信息
-                <input id="swarm-commit-message" type="text" value="chore: apply pi-swarm changes">
-              </label>
-            </div>
-          </form>
+          <label><span>本地 commit 信息</span><input id="swarm-commit-message" type="text" value="chore: apply pi-swarm changes"></label>
         </section>
       </div>
     </section>

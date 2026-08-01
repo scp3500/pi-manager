@@ -930,7 +930,7 @@ async function loadAgents() {
   }
   const c = $('#agents-count');
   if (c) c.textContent = String(state.agents.length);
-  // 同步加载工作流规范列表（memory/pi）
+  // 同步加载工作流规范列表（pi_config/workflows）
   if (typeof loadWorkflowDocs === 'function') {
     await loadWorkflowDocs();
   }
@@ -944,7 +944,7 @@ async function loadCategories() {
       { id: 'dev', label: '开发', order: 1, color: '#5aa2ff' },
       { id: 'research', label: '研究', order: 2, color: '#3fb950' },
       { id: 'debug', label: '调试', order: 3, color: '#ffb454' },
-      { id: 'consultant', label: '顾问', order: 4, color: '#c084fc' },
+      { id: 'org', label: '组织', order: 5, color: '#26c6b8' },
       { id: 'other', label: '其他', order: 9, color: '#8b98a9' },
     ];
   }
@@ -2464,7 +2464,7 @@ async function showBuiltinWorkflowTemplate() {
     const meta = document.getElementById('wf-meta');
     if (meta) {
       meta.textContent =
-        '内置模板 · 不可保存。配置 memory/pi 后可在此编辑你自己的 AGENTS_SUBAGENT.md';
+        '内置模板 · 不可保存。配置 pi_config/workflows 后可在此编辑你自己的 AGENTS_SUBAGENT.md';
     }
     const save = document.getElementById('workflow-save');
     if (save) save.disabled = true;
@@ -2511,7 +2511,7 @@ function renderWorkflowList() {
   ordered.forEach((it) => {
     const meta = WORKFLOW_DOCS.find((d) => d.name === it.name) || {
       title: it.name.replace(/\.md$/, ''),
-      blurb: 'memory/pi',
+      blurb: 'pi_config/workflows',
     };
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -2601,7 +2601,7 @@ async function loadWorkflowDoc(force) {
         '<div><strong>文件</strong> ' +
         esc(data.path || '') +
         '</div><div class="muted" style="margin-top:4px">' +
-        esc((meta && meta.blurb) || 'memory/pi 运行规范 · 按需 read，非全文注入系统提示词') +
+        esc((meta && meta.blurb) || 'pi_config/workflows 运行规范 · 按需 read，非全文注入系统提示词') +
         '</div>';
     }
     // 核心流程文件显示可折叠用法速查
@@ -2759,6 +2759,11 @@ function renderAgentList() {
             <span class="badge accent">${esc(pureModel || '默认模型')}</span>
             ${thinking ? `<span class="badge">${esc(thinking)}</span>` : ''}
             ${
+              a.relativePath && a.relativePath !== a.filename
+                ? `<span class="badge">${esc(a.relativePath)}</span>`
+                : ''
+            }
+            ${
               a.categorySource === 'inferred'
                 ? '<span class="badge">自动分类</span>'
                 : ''
@@ -2828,7 +2833,8 @@ async function selectAgent(name, confirmLeave) {
   $('#agent-empty')?.classList.add('hidden');
   $('#workflow-editor')?.classList.add('hidden');
   $('#agent-editor')?.classList.remove('hidden');
-  $('#a-title').textContent = name;
+  $('#a-title').textContent =
+    name + (state.agentDetail.relativePath ? ' · ' + state.agentDetail.relativePath : '');
   setDirty('agents', false);
   renderAgentList();
   renderWorkflowList();
@@ -3183,6 +3189,7 @@ function fillOpenvlForm(p) {
   }
   $('#ov-toggle-key').textContent = '显示';
   $('#ov-apiBase').value = p.api_base || '';
+  $('#ov-api-type').value = p.apiType || '';
   renderOpenvlModels(p.model || '');
   const paths = state.openvlPaths || {};
   $('#ov-paths').textContent =
@@ -3315,6 +3322,7 @@ async function saveOpenvlProfile() {
     const body = {
       name: ($('#ov-name').value || '').trim(),
       api_base: ($('#ov-apiBase').value || '').trim(),
+      api_type: ($('#ov-api-type').value || '').trim(),
       model: ($('#ov-model').value || '').trim(),
       models: state.openvlModels.slice(),
     };

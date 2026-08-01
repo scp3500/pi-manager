@@ -577,7 +577,7 @@
             <div id="agent-list" class="side-list"></div>
           </div>
           <div id="agent-side-workflow" class="side-pane hidden">
-            <div class="side-head">memory/pi · 按需读取</div>
+            <div class="side-head">pi_config/workflows · 按需读取</div>
             <div id="agent-workflow-list" class="side-list"></div>
           </div>
         </aside>
@@ -761,6 +761,16 @@
             </label>
             <label>API 地址
               <input id="ov-apiBase" spellcheck="false" placeholder="https://…/v1/chat/completions 或 /v1/responses">
+            </label>
+            <label>API 格式（可选，默认自动识别）
+              <select id="ov-api-type">
+                <option value="">自动识别（默认）</option>
+                <option value="chat">chat (openai /v1/chat/completions)</option>
+                <option value="responses">responses (/v1/responses)</option>
+                <option value="gemini">gemini (Google)</option>
+                <option value="claude">claude (Anthropic)</option>
+              </select>
+              <div class="muted" style="font-size:12px;margin-top:4px">URL 已带完整 endpoint 时以 URL 为准；仅裸地址时此项决定补全方向与格式</div>
             </label>
             <label>当前模型
               <div class="key-row">
@@ -976,9 +986,9 @@
               <div class="page-guide-card">
                 <h4>是什么</h4>
                 <ul class="page-guide-list">
-                  <li>每个子代理是 <code>~/.pi/agent/agents/</code> 下的一份 Markdown（frontmatter + Prompt）</li>
+                  <li>每个子代理是 <code>E:/pi_agent/pi_config/agents/</code> 下的一份分类 Markdown（frontmatter + Prompt）</li>
                   <li>主会话通过 <code>subagent</code> 工具按名称调用；可单跑或 <code>tasks[]</code> 并行</li>
-                  <li>侧栏「工作流」是 memory/pi 里的协作规范（按需 read）</li>
+                  <li>侧栏「工作流」是 pi_config/workflows 里的协作规范（按需 read）</li>
                 </ul>
               </div>
               <div class="page-guide-card">

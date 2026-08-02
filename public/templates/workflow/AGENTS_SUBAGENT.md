@@ -1,6 +1,6 @@
 # 子代理工作流（内置只读模板）
 
-> 这是 Pi Manager 内置的说明模板。配置工作区 `map.memory` 并在 `memory/pi/` 下放置同名文件后，可在「子代理 → 工作流」中编辑你自己的版本。
+> 这是 Pi Manager 内置的说明模板。配置工作区 `map.workflows` 并在该目录下放置同名文件后，可在「子代理 → 工作流」中编辑你自己的版本。
 
 ## 几套流程（速查）
 
@@ -30,4 +30,4 @@
 
 ## 记忆
 
-平台经验写入工作区 `memory/`（可按 pi / projects / tools 分类）。完整规则在用户自己的 `AGENTS_SUBAGENT.md` 中维护。
+平台经验写入工作区 `memory/`（按 learnings / projects / tools / archive 分类）。完整规则在用户自己的 `AGENTS_SUBAGENT.md` 中维护。

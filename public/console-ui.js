@@ -143,7 +143,7 @@ function renderPromptList() {
   items.forEach((it) => {
     const g =
       it.group ||
-      (it.kind === 'agents' ? '系统提示词' : it.kind === 'memory' ? '记忆规范' : 'Prompt 模板');
+      (it.kind === 'agents' ? '系统提示词' : it.kind === 'memory' ? '工作流规则' : 'Prompt 模板');
     if (!seen.has(g)) {
       seen.add(g);
       groups.push(g);
@@ -158,7 +158,7 @@ function renderPromptList() {
       .filter((it) => {
         const gg =
           it.group ||
-          (it.kind === 'agents' ? '系统提示词' : it.kind === 'memory' ? '记忆规范' : 'Prompt 模板');
+          (it.kind === 'agents' ? '系统提示词' : it.kind === 'memory' ? '工作流规则' : 'Prompt 模板');
         return gg === g;
       })
       .forEach((it) => {
@@ -169,13 +169,13 @@ function renderPromptList() {
           it.kind === 'agents'
             ? '<span class="badge accent">核心</span>'
             : it.kind === 'memory'
-              ? '<span class="badge ok">记忆</span>'
+              ? '<span class="badge ok">工作流</span>'
               : '<span class="badge">模板</span>';
         btn.innerHTML =
           '<div class="si-title">' +
           esc(it.name) +
           '</div><div class="si-sub">' +
-          esc(it.kind === 'memory' ? 'memory/pi' : it.kind === 'agents' ? '系统' : 'prompts/') +
+          esc(it.kind === 'memory' ? 'pi_config/workflows' : it.kind === 'agents' ? '系统' : 'prompts/') +
           '</div><div class="si-tags">' +
           tag +
           '</div>';

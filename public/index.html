@@ -668,6 +668,54 @@
 
             <div class="block-lite">
               <div class="block-head">
+                <h3>高级行为</h3>
+              </div>
+              <div class="grid-2">
+                <label>任务类型
+                  <select id="a-task-type">
+                    <option value="">跟随默认</option>
+                    <option value="planning">planning</option>
+                    <option value="analysis">analysis</option>
+                    <option value="explore">explore</option>
+                    <option value="verification">verification</option>
+                    <option value="development">development</option>
+                  </select>
+                  <span class="hint">规划子代理的职责类型；留空=不输出该字段、跟随全局默认</span>
+                </label>
+                <label>子代理模式 sp-mode
+                  <select id="a-sp-mode">
+                    <option value="append">append（默认）</option>
+                    <option value="replace">replace</option>
+                  </select>
+                  <span class="hint">append=在父上下文后追加执行，replace=替换父上下文独立执行</span>
+                </label>
+              </div>
+              <div class="grid-2">
+                <label>继承上下文 inherit-ctx
+                  <select id="a-inherit-ctx">
+                    <option value="">不写</option>
+                    <option value="true">true</option>
+                    <option value="false">false</option>
+                  </select>
+                  <span class="hint">true=子代理继承主会话上下文；false=显式不继承；不写=不输出该字段</span>
+                </label>
+                <label>继承技能 inherit-skills
+                  <select id="a-inherit-skills">
+                    <option value="">不写</option>
+                    <option value="true">true</option>
+                    <option value="false">false</option>
+                  </select>
+                  <span class="hint">true=子代理继承可用 skills；false=显式关闭；不写=不输出该字段</span>
+                </label>
+              </div>
+              <label>后备模型 fallback-models
+                <input id="a-fallback-models" spellcheck="false" placeholder="provider/model:high, provider/model2">
+                <span class="hint">主模型不可用时的降级候选，逗号分隔、按顺序尝试；格式 provider/model，可带 :档位 后缀</span>
+              </label>
+            </div>
+
+            <div class="block-lite">
+              <div class="block-head">
                 <h3>工具权限</h3>
                 <span class="muted" id="a-tools-summary"></span>
               </div>

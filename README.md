@@ -64,7 +64,7 @@ cd pi-manager && npm start
 | **总览** | 默认模型直达、用量 KPI、健康检查、配置导出 |
 | **运行** | 在干活 / 在想 / 已退出；进程探测减少假运行 |
 | **模型** | 供应商 CRUD、远程拉模型、默认 Provider/Model |
-| **子代理** | 编辑 `agents/*.md`、工具权限预设、工作流规范 |
+| **子代理** | 递归编辑 `E:/pi_agent/pi_config/agents/**/*.md`、工具权限预设、工作流规范 |
 | **用量** | token / 费用趋势；与状态栏同一套 `usage.cost.total` |
 | **会话** | 搜索、清理、回收站还原 |
 | **识图** | 集成自研 [OpenVL](https://github.com/scp3500/openvl)；教程页可一键安装 |
@@ -110,8 +110,12 @@ cd pi-manager && npm start
 ~/.pi/agent/
 ├── models.json
 ├── settings.json
-├── agents/
+├── extensions/
 └── sessions/
+
+E:/pi_agent/pi_config/
+├── agents/          # 按分类递归存放的共享子代理
+└── skills/org/      # 组织能力层 Skill
 ```
 
 Windows：`%USERPROFILE%\.pi\agent\`
@@ -182,7 +186,9 @@ npm install -g @scp3500/openvl
 | `PORT` | `3001` | 服务端口 |
 | `PI_MANAGER_HOST` | `127.0.0.1` | 监听地址（默认仅 loopback） |
 | `PI_MANAGER_ALLOW_REMOTE` | 未设置 | 设为 `1` 才允许非 loopback Host |
-| `PI_AGENT_DIR` | `~/.pi/agent` | Pi 配置根 |
+| `PI_CONFIG_DIR` | `E:/pi_agent/pi_config` | 共享 Agent / Skill 配置根 |
+| `AGENTS_DIR` | `$PI_CONFIG_DIR/agents` | 递归 Agent Markdown 根目录 |
+| `PI_AGENT_DIR` | `~/.pi/agent` | Pi 运行时配置根 |
 | `PI_MANAGER_CONFIG` | `$PI_AGENT_DIR/pi-manager.json` | 控制台配置 |
 | `SESSIONS_DIR` | `$PI_AGENT_DIR/sessions` | 会话目录（测试可指临时目录） |
 | `OPENVL_PKG_DIR` | 自动探测 | OpenVL 包目录 |

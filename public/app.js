@@ -8,6 +8,9 @@ function esc(s) {
 }
 
 const TLM_LEVELS = ['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'];
+const AGENT_TASK_TYPES = ['planning', 'analysis', 'explore', 'verification', 'development'];
+const AGENT_SP_MODES = ['append', 'replace'];
+const AGENT_BOOL_TRIPLE = ['', 'true', 'false'];
 
 /**
  * 拆分 model spec 中的 thinking 后缀（只认最后一个合法档位，如 provider/id:high）。
@@ -2617,11 +2620,12 @@ async function loadWorkflowDoc(force) {
 }
 
 function setWorkflowMode(mode) {
-  const next = mode === 'preview' || mode === 'split' ? mode : 'edit';
+  const next =
+    mode === 'preview' || mode === 'split' ? mode : 'edit';
   state.workflowMode = next;
   const view = $('#wf-view');
   if (view) {
-    view.classList.remove('mode-edit', 'mode-preview', 'mode-split');
+    view.classList.remove('mode-edit', 'mode-preview', 'mode-split', 'hidden');
     view.classList.add('mode-' + next);
   }
   document.querySelectorAll('#wf-mode-switch .mode-btn').forEach((b) => {
@@ -2755,6 +2759,7 @@ function renderAgentList() {
         btn.innerHTML = `
           <div class="si-title">${esc(name)}</div>
           <div class="si-sub">${esc(a.description || '无描述')}</div>
+          ${a.taskType ? `<span class="chip">${esc(a.taskType)}</span>` : ''}
           <div class="si-tags">
             <span class="badge accent">${esc(pureModel || '默认模型')}</span>
             ${thinking ? `<span class="badge">${esc(thinking)}</span>` : ''}
@@ -2878,6 +2883,21 @@ function fillAgentForm(a) {
         : '按名称自动识别（保存后写入文件）';
   }
   setToolsFromString(a.tools || '');
+  // 高级行为字段（缺省置空）
+  const tt = $('#a-task-type');
+  if (tt) tt.value = a.taskType || '';
+  const sm = $('#a-sp-mode');
+  if (sm) sm.value = a.systemPromptMode || '';
+  const ic = $('#a-inherit-ctx');
+  if (ic) ic.value = a.inheritProjectContext || '';
+  const is = $('#a-inherit-skills');
+  if (is) is.value = a.inheritSkills || '';
+  const fb = $('#a-fallback-models');
+  if (fb) {
+    fb.value = Array.isArray(a.fallbackModels)
+      ? a.fallbackModels.join(', ')
+      : (a.fallbackModels || '');
+  }
 }
 
 async function saveAgent() {
@@ -2891,6 +2911,36 @@ async function saveAgent() {
     if (thinking && !pureModel.trim()) {
       return showToast('请先选择模型或清空思考档', false);
     }
+    // 高级行为字段读取与预校验（非法值不发请求）
+    const taskType = ($('#a-task-type') && $('#a-task-type').value) || '';
+    const systemPromptMode = ($('#a-sp-mode') && $('#a-sp-mode').value) || '';
+    const inheritProjectContext = ($('#a-inherit-ctx') && $('#a-inherit-ctx').value) || '';
+    const inheritSkills = ($('#a-inherit-skills') && $('#a-inherit-skills').value) || '';
+    const fallbackModels = ($('#a-fallback-models') && $('#a-fallback-models').value) || '';
+    if (taskType && !AGENT_TASK_TYPES.includes(taskType)) {
+      return showToast('任务类型无效: ' + taskType + '（仅支持 planning/analysis/explore/verification/development 或留空）', false);
+    }
+    if (systemPromptMode && !AGENT_SP_MODES.includes(systemPromptMode)) {
+      return showToast('子代理模式无效: ' + systemPromptMode + '（仅支持 append/replace）', false);
+    }
+    if (!AGENT_BOOL_TRIPLE.includes(inheritProjectContext)) {
+      return showToast('继承上下文取值无效: ' + inheritProjectContext + '（仅 true/false/留空）', false);
+    }
+    if (!AGENT_BOOL_TRIPLE.includes(inheritSkills)) {
+      return showToast('继承技能取值无效: ' + inheritSkills + '（仅 true/false/留空）', false);
+    }
+    // 后备模型逐项校验 provider/model 形态（复用 parseModelSpec 剥离可选 :档位 后缀）
+    const badFallback = String(fallbackModels)
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .find((entry) => {
+        const m = parseModelSpec(entry).model.trim();
+        return !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(m);
+      });
+    if (badFallback) {
+      return showToast('后备模型无效: ' + badFallback + '（应为 provider/model，可带 :档位 后缀）', false);
+    }
     // compose 后 model 为完整 spec（provider/id:high）；thinking 空串由后端删独立字段
     const payload = {
       name: $('#a-name').value.trim(),
@@ -2900,6 +2950,11 @@ async function saveAgent() {
       model: composeModelSpec(pureModel, thinking),
       thinking: '',
       prompt: $('#a-prompt').value,
+      taskType,
+      systemPromptMode,
+      inheritProjectContext,
+      inheritSkills,
+      fallbackModels,
     };
     if (!payload.name) return showToast('名称不能为空', false);
     if (!/^[a-zA-Z0-9_-]{1,64}$/.test(payload.name)) {

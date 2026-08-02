@@ -42,13 +42,27 @@ function writeRaw(name, content) {
 }
 
 function readRaw(name) {
-  return fs.readFileSync(agentPath(name), 'utf8');
+  const wanted = name + '.md';
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const target = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        const hit = walk(target);
+        if (hit) return hit;
+      } else if (entry.isFile() && entry.name === wanted) {
+        return target;
+      }
+    }
+    return null;
+  };
+  const found = walk(agentsDir);
+  if (!found) throw new Error('missing agent file: ' + name);
+  return fs.readFileSync(found, 'utf8');
 }
 
 function wipeAgents() {
-  for (const f of fs.readdirSync(agentsDir)) {
-    fs.unlinkSync(path.join(agentsDir, f));
-  }
+  fs.rmSync(agentsDir, { recursive: true, force: true });
+  fs.mkdirSync(agentsDir, { recursive: true });
 }
 
 describe('agents model/thinking split', () => {
@@ -277,11 +291,84 @@ describe('agents model/thinking split', () => {
       assert.equal(got.thinking, '');
     });
 
-    it('listAgents includes thinking field', () => {
+    it('writes newly managed agents into their category directory', () => {
+    writeAgent(
+      'nested',
+      { description: 'nested', category: 'dev', model: 'provider/model' },
+      'body\n'
+    );
+    const file = path.join(agentsDir, 'dev', 'nested.md');
+    assert.ok(fs.existsSync(file));
+    const listed = listAgents().find((a) => a.name === 'nested');
+    assert.ok(listed);
+    assert.equal(listed.relativePath, 'dev/nested.md');
+    assert.equal(readAgent('nested').directory, 'dev');
+  });
+
+  it('listAgents includes thinking field', () => {
       writeAgent('listed', { model: 'a/b:minimal', description: 'd' }, 'p');
       const row = listAgents().find((a) => a.name === 'listed');
       assert.equal(row.thinking, 'minimal');
       assert.equal(row.model, 'a/b');
+    });
+  });
+
+  describe('agent metadata fields (taskType etc.)', () => {
+    it('round-trips new metadata fields through write/read', () => {
+      writeAgent(
+        'meta',
+        {
+          description: 'meta',
+          taskType: 'planning',
+          systemPromptMode: 'append',
+          inheritProjectContext: 'true',
+          inheritSkills: '',
+          fallbackModels: 'a/b, , c/d:high',
+        },
+        'prompt-body\n'
+      );
+      const raw = readRaw('meta');
+      assert.match(raw, /^taskType: planning$/m);
+      assert.match(raw, /^systemPromptMode: append$/m);
+      assert.match(raw, /^inheritProjectContext: true$/m);
+      // empty values are not persisted
+      assert.ok(!/^inheritSkills:/m.test(raw), raw);
+      // empty items dropped, remaining items kept (quoted due to ':')
+      assert.match(raw, /^fallbackModels: "?a\/b,c\/d:high"?$/m);
+
+      const got = readAgent('meta');
+      assert.equal(got.taskType, 'planning');
+      assert.equal(got.systemPromptMode, 'append');
+      assert.equal(got.inheritProjectContext, 'true');
+      assert.equal(got.inheritSkills, '');
+      assert.equal(got.fallbackModels, 'a/b,c/d:high');
+      assert.equal(got.prompt, 'prompt-body\n');
+    });
+
+    it('rejects illegal metadata values', () => {
+      assert.throws(
+        () => writeAgent('bad-task', { taskType: 'debug' }, 'x'),
+        /taskType/
+      );
+      assert.ok(!fs.existsSync(agentPath('bad-task')));
+
+      assert.throws(
+        () => writeAgent('bad-mode', { systemPromptMode: 'overwrite' }, 'x'),
+        /systemPromptMode/
+      );
+      assert.ok(!fs.existsSync(agentPath('bad-mode')));
+
+      assert.throws(
+        () => writeAgent('bad-inherit', { inheritProjectContext: 'yes' }, 'x'),
+        /inheritProjectContext/
+      );
+      assert.ok(!fs.existsSync(agentPath('bad-inherit')));
+
+      assert.throws(
+        () => writeAgent('bad-fb', { fallbackModels: 'a/b, :high' }, 'x'),
+        /fallbackModels/
+      );
+      assert.ok(!fs.existsSync(agentPath('bad-fb')));
     });
   });
 });

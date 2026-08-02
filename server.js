@@ -266,6 +266,11 @@ async function handleAgentsApi(req, res, pathname, method) {
           tools: body.tools,
           model: body.model,
           thinking: body.thinking,
+          taskType: body.taskType,
+          systemPromptMode: body.systemPromptMode,
+          inheritProjectContext: body.inheritProjectContext,
+          inheritSkills: body.inheritSkills,
+          fallbackModels: body.fallbackModels,
         },
         body.prompt || ''
       );
@@ -303,6 +308,11 @@ async function handleAgentsApi(req, res, pathname, method) {
           tools: body.tools,
           model: body.model,
           thinking: body.thinking,
+          taskType: body.taskType,
+          systemPromptMode: body.systemPromptMode,
+          inheritProjectContext: body.inheritProjectContext,
+          inheritSkills: body.inheritSkills,
+          fallbackModels: body.fallbackModels,
         };
         const prompt = body.prompt || '';
         if (newName !== name) renameAgent(name, newName, fields, prompt);

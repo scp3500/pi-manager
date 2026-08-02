@@ -278,7 +278,7 @@ function renderDashboard() {
     dashTile({
       title: '工作流',
       value: wf.ready ? '可用' : '依赖记忆',
-      sub: esc(wf.ready ? wf.path || 'memory/pi' : wf.reason || '依赖记忆'),
+      sub: esc(wf.ready ? wf.path || 'pi_config/workflows' : wf.reason || '未配置工作流'),
       pill: dashPill(!!wf.ready, '就绪', '未就绪'),
       href: '#/agents',
     }) +

@@ -147,17 +147,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (typeof bindContentPages === 'function') bindContentPages();
   bindGlobalSave();
   buildTlmGrid();
-  await Promise.all([
-    loadMeta(),
-    loadProviders(),
-    loadDefaults(),
-    loadFlatModels(),
-    loadAgents(),
-    loadToolPool(),
-    loadCategories(),
-    loadOpenvl(),
-    typeof loadConsoleData === 'function' ? loadConsoleData() : Promise.resolve(),
-  ]);
+  const bootTasks = [
+    ['meta', loadMeta()],
+    ['providers', loadProviders()],
+    ['defaults', loadDefaults()],
+    ['flatModels', loadFlatModels()],
+    ['agents', loadAgents()],
+    ['toolPool', loadToolPool()],
+    ['categories', loadCategories()],
+    ['openvl', loadOpenvl()],
+    ['console', typeof loadConsoleData === 'function' ? loadConsoleData() : Promise.resolve()],
+  ];
+  const bootResults = await Promise.allSettled(bootTasks.map(([, p]) => p));
+  bootResults.forEach((r, i) => {
+    if (r.status === 'rejected') {
+      console.warn('[boot] ' + bootTasks[i][0] + ' load failed:', r.reason);
+    }
+  });
   if (typeof updateCapabilityHints === 'function') updateCapabilityHints();
   routeFromHash();
   window.addEventListener('hashchange', routeFromHash);

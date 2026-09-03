@@ -350,8 +350,11 @@ describe('server integration (isolated tmp)', () => {
   });
 
   it('static JS resource -> 200 application/javascript', async () => {
-    const res = await request('GET', '/app.js');
-    assert.equal(res.status, 200);
-    assert.match(String(res.headers['content-type'] || ''), /application\/javascript/);
+    for (const file of ['/app.js', '/models-ui.js', '/agents-ui.js', '/openvl-ui.js']) {
+      const res = await request('GET', file);
+      assert.equal(res.status, 200, file + ' should return 200');
+      assert.match(String(res.headers['content-type'] || ''), /application\/javascript/);
+      assert.ok(res.text.length > 100, file + ' should not be empty');
+    }
   });
 });

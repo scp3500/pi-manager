@@ -125,7 +125,12 @@ function readBody(req) {
 }
 
 function safePublicPath(urlPath) {
-  const rel = decodeURIComponent(urlPath).replace(/^\/+/, '');
+  let rel;
+  try {
+    rel = decodeURIComponent(urlPath).replace(/^\/+/, '');
+  } catch {
+    return null;
+  }
   const filePath = path.resolve(path.join(PUBLIC_DIR, rel || 'index.html'));
   const prefix = PUBLIC_DIR.endsWith(path.sep) ? PUBLIC_DIR : PUBLIC_DIR + path.sep;
   if (filePath !== PUBLIC_DIR && !filePath.startsWith(prefix)) return null;
@@ -858,7 +863,7 @@ async function handleOpenvlApi(req, res, pathname, method) {
   // GET /api/openvl/doctor
   if (method === 'GET' && pathname === '/api/openvl/doctor') {
     try {
-      sendJson(res, 200, openvl.runDoctor());
+      sendJson(res, 200, await openvl.runDoctor());
     } catch (e) {
       sendError(res, 500, e.message || String(e));
     }
@@ -2267,26 +2272,30 @@ process.on('SIGINT', () => {
   server.close(() => process.exit(0));
 });
 
-server.listen(PORT, BIND_HOST, () => {
-  console.log('Pi Manager');
-  console.log('  bind:     ' + BIND_HOST + ':' + PORT);
-  console.log('  http://localhost:' + PORT);
-  console.log('  models:   ' + MODELS_FILE);
-  console.log('  settings: ' + SETTINGS_FILE);
-  console.log('  agents:   ' + AGENTS_DIR);
-  console.log('  prompt:   ' + AGENTS_MD_FILE);
-  console.log('  manager:  ' + MANAGER_CONFIG_FILE);
-  console.log(
-    '  openvl:   ' + (OPENVL_AVAILABLE ? OPENVL_PROFILES_FILE : '(未安装)')
-  );
-  // warm usage disk index into memory so first /api/usage after restart is fast
-  setImmediate(() => {
-    try {
-      usageApi.collectUsage({ window: 'all', force: false });
-      console.log('  usage:    cache warmed');
-    } catch (e) {
-      console.log('  usage:    warm failed: ' + (e && e.message ? e.message : e));
-    }
+module.exports = { safePublicPath, server, PORT, BIND_HOST };
+
+if (require.main === module) {
+  server.listen(PORT, BIND_HOST, () => {
+    console.log('Pi Manager');
+    console.log('  bind:     ' + BIND_HOST + ':' + PORT);
+    console.log('  http://localhost:' + PORT);
+    console.log('  models:   ' + MODELS_FILE);
+    console.log('  settings: ' + SETTINGS_FILE);
+    console.log('  agents:   ' + AGENTS_DIR);
+    console.log('  prompt:   ' + AGENTS_MD_FILE);
+    console.log('  manager:  ' + MANAGER_CONFIG_FILE);
+    console.log(
+      '  openvl:   ' + (OPENVL_AVAILABLE ? OPENVL_PROFILES_FILE : '(未安装)')
+    );
+    // warm usage disk index into memory so first /api/usage after restart is fast
+    setImmediate(() => {
+      try {
+        usageApi.collectUsage({ window: 'all', force: false });
+        console.log('  usage:    cache warmed');
+      } catch (e) {
+        console.log('  usage:    warm failed: ' + (e && e.message ? e.message : e));
+      }
+    });
+    console.log('  pid:      ' + process.pid);
   });
-  console.log('  pid:      ' + process.pid);
-});
+}

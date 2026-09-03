@@ -518,6 +518,14 @@ function routeFromHash() {
       return;
     }
   }
+  if (state.route && next !== state.route) {
+    if (state.route === 'runtime' && typeof window.stopRuntimeTimer === 'function') {
+      window.stopRuntimeTimer();
+    }
+    if (state.route === 'search' && typeof window.clearSearchTimer === 'function') {
+      window.clearSearchTimer();
+    }
+  }
   state.route = next;
   $$('#nav-tabs .tab[data-route]').forEach((tab) =>
     tab.classList.toggle('active', tab.dataset.route === next)

@@ -582,6 +582,7 @@
 
   window.enterRuntimeRoute = enterRuntimeRoute;
   window.loadRuntime = loadRuntime;
+  window.stopRuntimeTimer = stopTimer;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
   else bind();
 })();

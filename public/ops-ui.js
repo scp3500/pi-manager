@@ -436,6 +436,13 @@ function enterOpsRoute(route) {
   if (route === 'search') enterSearchRoute();
 }
 
+window.clearSearchTimer = function () {
+  if (_searchTimer) {
+    clearTimeout(_searchTimer);
+    _searchTimer = null;
+  }
+};
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', bindOpsUI);
 } else {

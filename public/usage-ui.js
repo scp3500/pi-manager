@@ -669,7 +669,7 @@ function modelTable(models, emptyText, sortBy) {
     '<div class="usage-table-wrap"><table class="table usage-table"><thead><tr>' +
     '<th>模型' +
     (byTokens ? ' · 按 Tokens' : ' · 按费用') +
-    '</th><th>请求</th><th>Tokens</th><th>In / Out</th><th>费用</th>' +
+    '</th><th class="num">请求</th><th class="num">Tokens</th><th class="num">In / Out</th><th class="num">费用</th>' +
     '</tr></thead><tbody>' +
     rows +
     '</tbody></table></div>'
@@ -726,7 +726,7 @@ function agentTable(agents, emptyText, sortBy) {
     .join('');
   return (
     '<div class="usage-table-wrap"><table class="table usage-table"><thead><tr>' +
-    '<th>子代理</th><th>Turns</th><th>模型数</th><th>Tokens</th><th>费用</th>' +
+    '<th>子代理</th><th class="num">Turns</th><th class="num">模型数</th><th class="num">Tokens</th><th class="num">费用</th>' +
     '</tr></thead><tbody>' +
     rows +
     '</tbody></table></div>'
@@ -762,7 +762,7 @@ function providerTable(providers) {
     .join('');
   return (
     '<div class="usage-table-wrap"><table class="table usage-table"><thead><tr>' +
-    '<th>供应商</th><th>请求</th><th>模型数</th><th>Tokens</th><th>费用</th>' +
+    '<th>供应商</th><th class="num">请求</th><th class="num">模型数</th><th class="num">Tokens</th><th class="num">费用</th>' +
     '</tr></thead><tbody>' +
     rows +
     '</tbody></table></div>'

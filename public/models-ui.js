@@ -414,7 +414,8 @@ function fillProviderTestModelSelect(preferredId) {
     .map((m) => {
       const id = m && m.id ? String(m.id) : '';
       if (!id) return '';
-      return '<option value="' + esc(id) + '">' + esc(id) + '</option>';
+      const label = m.api ? id + ' · api: ' + m.api : id;
+      return '<option value="' + esc(id) + '">' + esc(label) + '</option>';
     })
     .filter(Boolean)
     .join('');
@@ -787,7 +788,7 @@ function ensureProviderTestModal() {
     '<button type="button" class="btn ghost sm" id="provider-test-modal-close">关闭</button>' +
     '</div>' +
     '<div class="provider-test-modal-body">' +
-    '<p class="muted" id="provider-test-modal-desc">选择一个已添加的模型，向当前 Base URL 发送最小请求。</p>' +
+    '<p class="muted" id="provider-test-modal-desc">选择一个已添加的模型，按该模型的 API 格式（含模型级覆盖）向 Base URL 发送最小请求。</p>' +
     '<label class="provider-test-model-field">模型' +
     '<select id="provider-test-model"></select>' +
     '</label>' +
@@ -896,9 +897,10 @@ async function runProviderTestFromModal() {
       st.className = 'hint-block ' + (r.ok ? 'ok' : 'err');
       const ep = r.endpoint ? ' · ' + r.endpoint : '';
       const md = r.model ? ' · model ' + r.model : '';
+      const au = r.api ? ' · api ' + r.api : '';
       st.textContent = r.ok
-        ? '检测通过 ✓ ' + (r.message || ('HTTP ' + (r.status || ''))) + md + ep
-        : '检测失败: ' + (r.error || r.message || 'unknown') + md + ep;
+        ? '检测通过 ✓ ' + (r.message || ('HTTP ' + (r.status || ''))) + md + au + ep
+        : '检测失败: ' + (r.error || r.message || 'unknown') + md + au + ep;
     }
     // 同步到页面状态条（若存在）
     const pageSt = $('#provider-status');

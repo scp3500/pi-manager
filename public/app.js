@@ -75,6 +75,10 @@ const state = {
   keepApiKey: true,
   keyVisible: false,
   modelsDirty: false,
+  providerDirty: false,
+  modelDirty: false,
+  providerRevision: 0,
+  modelRevision: 0,
   agents: [],
   currentAgentName: null,
   agentDetail: null,
@@ -151,26 +155,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (typeof bindContentPages === "function") bindContentPages();
   bindGlobalSave();
   if (typeof buildTlmGrid === "function") buildTlmGrid();
-  const bootTasks = [
-    ["meta", loadMeta()],
-    ["providers", typeof loadProviders === "function" ? loadProviders() : Promise.resolve()],
-    ["defaults", typeof loadDefaults === "function" ? loadDefaults() : Promise.resolve()],
-    ["flatModels", typeof loadFlatModels === "function" ? loadFlatModels() : Promise.resolve()],
-    ["agents", typeof loadAgents === "function" ? loadAgents() : Promise.resolve()],
-    ["toolPool", typeof loadToolPool === "function" ? loadToolPool() : Promise.resolve()],
-    ["categories", typeof loadCategories === "function" ? loadCategories() : Promise.resolve()],
-    ["openvl", typeof loadOpenvl === "function" ? loadOpenvl() : Promise.resolve()],
-    ["console", typeof loadConsoleData === "function" ? loadConsoleData() : Promise.resolve()],
-  ];
-  const bootResults = await Promise.allSettled(bootTasks.map(([, p]) => p));
-  bootResults.forEach((r, i) => {
-    if (r.status === "rejected") {
-      console.warn("[boot] " + bootTasks[i][0] + " load failed:", r.reason);
-    }
+  void loadMeta().then(() => {
+    if (typeof updateCapabilityHints === 'function') updateCapabilityHints();
   });
-  if (typeof updateCapabilityHints === "function") updateCapabilityHints();
-  routeFromHash();
-  window.addEventListener("hashchange", routeFromHash);
+  window.addEventListener('hashchange', () => { void routeFromHash(); });
+  await routeFromHash();
   maybeShowOnboarding();
 });
 // ── theme ───────────────────────────────────────────────────────────────────
@@ -474,7 +463,30 @@ function bindNav() {
   });
 }
 
-function routeFromHash() {
+let routeGeneration = 0;
+const routeLoads = new Map();
+
+async function loadRouteData(route) {
+  const loaders = {
+    models: ['loadProviders', 'loadDefaults', 'loadFlatModels'],
+    agents: ['loadAgents', 'loadCategories', 'loadToolPool', 'loadFlatModels', 'loadWorkspaces'],
+    openvl: ['loadOpenvl'],
+  }[route] || [];
+  if (!loaders.length) return;
+  if (!routeLoads.has(route)) {
+    const task = Promise.allSettled(loaders.map((name) =>
+      Promise.resolve().then(() => typeof window[name] === 'function' ? window[name]() : undefined)
+    )).then((results) => {
+      results.forEach((result, i) => {
+        if (result.status === 'rejected') console.warn('[route] ' + loaders[i], result.reason);
+      });
+    }).finally(() => routeLoads.delete(route));
+    routeLoads.set(route, task);
+  }
+  await routeLoads.get(route);
+}
+
+async function routeFromHash() {
   const rawHash = location.hash || '#/dashboard';
   const h = rawHash.replace(/^#\/?/, '');
   const pathOnly = h.split(/[?#]/)[0] || '';
@@ -530,6 +542,7 @@ function routeFromHash() {
     }
   }
   state.route = next;
+  const generation = ++routeGeneration;
   $$('#nav-tabs .tab[data-route]').forEach((tab) =>
     tab.classList.toggle('active', tab.dataset.route === next)
   );
@@ -563,6 +576,9 @@ function routeFromHash() {
   ['prompt', 'skills', 'plugins', 'memory', 'knowledge', 'workspaces'].forEach((pg) => {
     $('#page-' + pg)?.classList.toggle('hidden', next !== pg);
   });
+  updateGlobalSaveUI();
+  await loadRouteData(next);
+  if (generation !== routeGeneration) return;
   if (next === 'guides') {
     if (typeof enterGuidesRoute === 'function') enterGuidesRoute(query.topic || query.t || '');
   } else if (next === 'dashboard' || next === 'sessions') {
@@ -636,12 +652,25 @@ function routeFromHash() {
 
 // ── api / toast ─────────────────────────────────────────────────────────────
 
-async function api(path, opts) {
-  const res = await fetch(path, opts);
-  const data = await res.json().catch(() => ({}));
-  // 202 Accepted used by long-running install jobs
-  if (!res.ok && res.status !== 202) throw new Error(data.error || 'HTTP ' + res.status);
-  return data;
+async function api(path, opts = {}) {
+  const { timeoutMs = 30000, signal, ...requestOpts } = opts;
+  const controller = new AbortController();
+  const abort = () => controller.abort(signal.reason);
+  if (signal?.aborted) abort();
+  else signal?.addEventListener('abort', abort, { once: true });
+  const timer = setTimeout(() => controller.abort(new Error('请求超时')), timeoutMs);
+  try {
+    const res = await fetch(path, { ...requestOpts, signal: controller.signal });
+    const data = await res.json().catch((error) => {
+      if (controller.signal.aborted) throw error;
+      return {};
+    });
+    if (!res.ok && res.status !== 202) throw new Error(data.error || 'HTTP ' + res.status);
+    return data;
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', abort);
+  }
 }
 
 function showToast(msg, ok = true) {
@@ -656,6 +685,15 @@ function showToast(msg, ok = true) {
 }
 
 function setDirty(kind, dirty) {
+  if (kind === 'provider' || kind === 'model') {
+    state[kind + 'Dirty'] = dirty;
+    if (dirty) state[kind + 'Revision']++;
+    kind = 'models';
+    dirty = state.providerDirty || state.modelDirty;
+  } else if (kind === 'models') {
+    state.providerDirty = dirty;
+    state.modelDirty = dirty;
+  }
   const map = {
     models: ['modelsDirty', 'models-dirty'],
     agents: ['agentsDirty', 'agents-dirty'],
@@ -757,7 +795,7 @@ function updateGlobalSaveUI() {
  * 顶栏全局保存。
  * - Agents 页：保存当前 Agent
  * - 模型页：若供应商+模型都打开，两者都存（先供应商后模型）；只开一个就存一个
- * 注意 modelsDirty 是共享标记，所以「两者都开」时必须都调用保存，不能看中间 dirty 状态。
+ * Provider and model saves have independent dirty flags and success results.
  */
 async function globalSave() {
   try {
@@ -828,6 +866,7 @@ async function globalSave() {
       }
     }
 
+    if (state.route !== 'models') return false;
     const modelOpen =
       !$('#model-editor').classList.contains('hidden') && !!state.selectedModelId;
     const providerOpen = !$('#provider-editor').classList.contains('hidden');
@@ -841,12 +880,12 @@ async function globalSave() {
       return true;
     }
 
-    // 先供应商（新建供应商时模型依赖它），再模型
-    if (providerOpen) await saveProvider();
-    if (modelOpen) {
-      const mid = ($('#m-id').value || '').trim();
-      // 新建模型还没填 ID 时跳过，避免只改供应商时被模型校验挡住
-      if (mid) await saveModel();
+    // A model failure must not be hidden by a successful provider save.
+    if (providerOpen && (state.providerDirty || !state.currentProviderId)) {
+      if (!(await saveProvider())) return false;
+    }
+    if (modelOpen && state.modelDirty) {
+      if (!(await saveModel())) return false;
     }
 
     updateGlobalSaveUI();

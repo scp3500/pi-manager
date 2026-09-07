@@ -58,9 +58,9 @@ function buildTlmGrid() {
     sel.addEventListener('change', () => {
       custom.classList.toggle('hidden', sel.value !== '__custom__');
       if (sel.value === '__custom__') custom.focus();
-      setDirty('models', true);
+      setDirty('model', true);
     });
-    custom.addEventListener('input', () => setDirty('models', true));
+    custom.addEventListener('input', () => setDirty('model', true));
   });
 }
 
@@ -114,7 +114,7 @@ function fillTlmForm(map) {
 
 function clearTlmForm() {
   fillTlmForm(null);
-  setDirty('models', true);
+  setDirty('model', true);
 }
 
 function readCostFromForm() {
@@ -212,7 +212,7 @@ function bindModelsUI() {
       state.keepApiKey = false;
       state.keyIsPlaceholder = false;
     }
-    setDirty('models', true);
+    setDirty('provider', true);
   });
   $('#p-apiKey')?.addEventListener('focus', () => {
     // 点进圆点占位时清空，方便直接输入新 key
@@ -236,12 +236,12 @@ function bindModelsUI() {
     state.remoteFilter = e.target.value || '';
     renderRemoteModelsList();
   });
-  $('#model-form').addEventListener('input', () => setDirty('models', true));
+  $('#model-form').addEventListener('input', () => setDirty('model', true));
   $('#m-cost-zero')?.addEventListener('click', () => {
     ['#m-cost-input', '#m-cost-output', '#m-cost-cacheRead', '#m-cost-cacheWrite'].forEach(
       (id) => ($(id).value = '0')
     );
-    setDirty('models', true);
+    setDirty('model', true);
   });
   $('#m-tlm-clear')?.addEventListener('click', clearTlmForm);
   // Ctrl+S 统一由 bindGlobalSave 处理
@@ -302,7 +302,9 @@ function showProviderEmpty() {
   renderProviderList();
 }
 
+let providerSelection = 0;
 async function selectProvider(id, confirmLeave) {
+  if (state.providerSaving || state.modelSaving) return;
   if (
     confirmLeave &&
     state.modelsDirty &&
@@ -312,12 +314,17 @@ async function selectProvider(id, confirmLeave) {
   ) {
     return;
   }
+  const selection = ++providerSelection;
+  const route = state.route;
+  let detail;
   try {
-    state.providerDetail = await api('/api/providers/' + encodeURIComponent(id));
+    detail = await api('/api/providers/' + encodeURIComponent(id));
   } catch (e) {
     showToast('读取失败: ' + e.message, false);
     return;
   }
+  if (selection !== providerSelection || state.route !== route) return;
+  state.providerDetail = detail;
   // 切换前保存当前供应商的远程勾选状态
   if (state.currentProviderId && state.currentProviderId !== id) {
     persistRemoteStateForProvider(state.currentProviderId);
@@ -338,7 +345,9 @@ async function selectProvider(id, confirmLeave) {
 }
 
 function openNewProvider() {
+  if (state.providerSaving || state.modelSaving) return;
   if (state.modelsDirty && !confirm('有未保存修改，继续新建？')) return;
+  ++providerSelection;
   if (state.currentProviderId) persistRemoteStateForProvider(state.currentProviderId);
   state.currentProviderId = null;
   restoreRemoteStateForProvider(null);
@@ -460,10 +469,15 @@ function renderModelTable() {
   });
 }
 
-function openModelEditor(modelId) {
+function openModelEditor(modelId, saved = false) {
+  if (!saved && (state.modelSaving || state.providerSaving)) return;
+  if (!saved && state.modelDirty &&
+      !confirm('模型有未保存修改，确定放弃并切换？')) return;
+  if (modelId !== '__new__' && !(state.providerDetail?.models || []).some((m) => m.id === modelId)) return;
   if (!state.currentProviderId && !state.providerDetail) {
     return showToast('请先保存供应商', false);
   }
+  setDirty('model', false);
   state.selectedModelId = modelId;
   $('#model-editor').classList.remove('hidden');
   if (modelId === '__new__') {
@@ -539,11 +553,15 @@ function toggleKey() {
 }
 
 async function saveProvider() {
+  if (state.providerSaving) return false;
+  state.providerSaving = true;
+  const revision = state.providerRevision;
   try {
     const id = $('#p-id').value.trim();
-    if (!id) return showToast('供应商 ID 不能为空', false);
+    if (!id) { showToast('供应商 ID 不能为空', false); return false; }
     if (!/^[a-zA-Z0-9_.-]{1,64}$/.test(id)) {
-      return showToast('ID 仅限字母数字 _ . -', false);
+      showToast('ID 仅限字母数字 _ . -', false);
+      return false;
     }
     const body = {
       id,
@@ -581,17 +599,23 @@ async function saveProvider() {
     }
     state.currentProviderId = result.id;
     state.providerDetail = result;
-    state.keepApiKey = true;
-    fillProviderForm(result);
+    if (state.providerRevision === revision) {
+      state.keepApiKey = true;
+      fillProviderForm(result);
+      setDirty('provider', false);
+    }
     renderModelTable();
     $('#p-title').textContent = result.id;
-    setDirty('models', false);
     showToast('供应商已保存');
     await loadProviders();
     await loadFlatModels();
     renderProviderList();
+    return !state.providerDirty;
   } catch (e) {
     showToast('保存失败: ' + e.message, false);
+    return false;
+  } finally {
+    state.providerSaving = false;
   }
 }
 
@@ -615,10 +639,13 @@ async function deleteProvider() {
 }
 
 async function saveModel() {
-  if (!state.currentProviderId) return showToast('请先保存供应商', false);
+  if (state.modelSaving || state.providerSaving) return false;
+  if (!state.currentProviderId) { showToast('请先保存供应商', false); return false; }
+  state.modelSaving = true;
+  const revision = state.modelRevision;
   try {
     const modelId = $('#m-id').value.trim();
-    if (!modelId) return showToast('Model ID 不能为空', false);
+    if (!modelId) { showToast('Model ID 不能为空', false); return false; }
     const body = {
       id: modelId,
       name: $('#m-name').value.trim() || undefined,
@@ -677,14 +704,20 @@ async function saveModel() {
       '/api/providers/' + encodeURIComponent(state.currentProviderId)
     );
     state.selectedModelId = result.model.id;
-    openModelEditor(result.model.id);
-    setDirty('models', false);
+    if (state.modelRevision === revision) {
+      openModelEditor(result.model.id, true);
+      setDirty('model', false);
+    }
     showToast('模型已保存');
     await loadProviders();
     await loadFlatModels();
     renderProviderList();
+    return !state.modelDirty;
   } catch (e) {
     showToast('保存模型失败: ' + e.message, false);
+    return false;
+  } finally {
+    state.modelSaving = false;
   }
 }
 
@@ -707,7 +740,7 @@ async function deleteModel() {
     state.selectedModelId = null;
     $('#model-editor').classList.add('hidden');
     renderModelTable();
-    setDirty('models', false);
+    setDirty('model', false);
     showToast('模型已删除');
     await loadProviders();
     await loadFlatModels();

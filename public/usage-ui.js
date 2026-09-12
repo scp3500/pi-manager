@@ -125,6 +125,19 @@ function usageLocalStoreSet(raw) {
   }
 }
 
+/** A usage report is usable only if it looks like a real report.
+ * Guards against caching/serving a degenerate `{}` (e.g. an error or a
+ * non-awaited backend handler), which would pin the UI to all-zero for hours. */
+function isUsableUsageReport(data) {
+  return (
+    !!data &&
+    typeof data === 'object' &&
+    !Array.isArray(data) &&
+    !data.error &&
+    (typeof data.requests === 'number' || Array.isArray(data.models))
+  );
+}
+
 function readLocalUsageCache(window) {
   try {
     const raw = usageLocalStoreGet();
@@ -133,13 +146,15 @@ function readLocalUsageCache(window) {
     if (!obj || !obj.byWindow || !obj.byWindow[window]) return null;
     // client paint cache: 6h (server disk index is source of truth; network still soft-refreshes)
     if (obj.savedAt && Date.now() - obj.savedAt > 6 * 60 * 60_000) return null;
-    return obj.byWindow[window];
+    const hit = obj.byWindow[window];
+    return isUsableUsageReport(hit) ? hit : null;
   } catch {
     return null;
   }
 }
 
 function writeLocalUsageCache(window, data) {
+  if (!isUsableUsageReport(data)) return; // never persist an empty report
   try {
     let obj = { savedAt: Date.now(), byWindow: {} };
     try {
@@ -347,6 +362,7 @@ async function loadUsage(force) {
 
   try {
     const data = await api(usageQuery(state.usageWindow, force));
+    if (!isUsableUsageReport(data)) throw new Error('用量接口返回空数据');
     state.usageData = data;
     state.usageFetchedAt = Date.now();
     writeLocalUsageCache(state.usageWindow, data);
@@ -393,6 +409,7 @@ async function loadUsageQuiet(window) {
   state._usageQuietLoading = true;
   try {
     const data = await api(usageQuery(w, false));
+    if (!isUsableUsageReport(data)) throw new Error('用量接口返回空数据');
     state.usageData = data;
     state.usageWindow = w;
     state.usageFetchedAt = Date.now();

@@ -5,6 +5,13 @@ const os = require('node:os');
 const path = require('node:path');
 const vm = require('node:vm');
 
+/** fetch Response double. Real Responses expose text(), which api() prefers so it
+ *  can tell an empty body apart from an invalid one instead of coercing both to {}. */
+function jsonResponse(body, { ok = true, status = 200 } = {}) {
+  const payload = body === undefined ? {} : body;
+  return { ok, status, text: async () => JSON.stringify(payload), json: async () => payload };
+}
+
 function frontend() {
   const elements = new Map();
   function element() {
@@ -22,7 +29,7 @@ function frontend() {
     console, setTimeout, clearTimeout, AbortController, URLSearchParams,
     document: { querySelector: get, querySelectorAll: () => [], getElementById: (id) => get('#' + id), createElement: element, body: element(), documentElement: element(), addEventListener: (name, fn) => { events[name] = fn; } },
     location: { hash: '#/dashboard' }, history: { replaceState() {} }, localStorage: { getItem: () => '1' },
-    confirm: () => false, fetch: async () => ({ ok: true, json: async () => ({}) }),
+    confirm: () => false, fetch: async () => jsonResponse({}),
     addEventListener() {},
   };
   context.window = context;
@@ -42,9 +49,9 @@ test('global save keeps model dirty and reports failure when model PUT fails', a
   c.setDirty('provider', true); c.setDirty('model', true);
   c.state.modelsDirty = true;
   c.fetch = async (url, opts) => {
-    if (url.endsWith('/models/m')) return { ok: false, status: 500, json: async () => ({ error: 'test failure' }) };
+    if (url.endsWith('/models/m')) return jsonResponse({ error: 'test failure' }, { ok: false, status: 500 });
     const data = opts ? { id: 'demo', models: [] } : [];
-    return { ok: true, json: async () => data };
+    return jsonResponse(data);
   };
   assert.equal(await c.globalSave(), false);
   assert.equal(c.state.modelsDirty, true);
@@ -55,7 +62,7 @@ test('saving provider does not clear unsaved model edits', async () => {
   c.state.currentProviderId = 'demo'; c.state.providerDetail = { id: 'demo', models: [] };
   get('#p-id').value = 'demo';
   c.setDirty('provider', true); c.setDirty('model', true); c.state.modelsDirty = true;
-  c.fetch = async (_url, opts) => ({ ok: true, json: async () => opts ? { id: 'demo', models: [] } : [] });
+  c.fetch = async (_url, opts) => jsonResponse(opts ? { id: 'demo', models: [] } : []);
   await c.saveProvider();
   assert.equal(c.state.modelsDirty, true);
 });
@@ -94,9 +101,9 @@ test('global save persists provider and model when both succeed', async () => {
   const calls = [];
   c.fetch = async (url, opts) => {
     calls.push([opts?.method, url]);
-    if (url.endsWith('/models/m')) return { ok: true, json: async () => ({ model: { id: 'm' } }) };
-    if (opts?.method === 'PUT') return { ok: true, json: async () => ({ id: 'demo', models: [{ id: 'm' }] }) };
-    return { ok: true, json: async () => [] };
+    if (url.endsWith('/models/m')) return jsonResponse({ model: { id: 'm' } });
+    if (opts?.method === 'PUT') return jsonResponse({ id: 'demo', models: [{ id: 'm' }] });
+    return jsonResponse([]);
   };
   assert.equal(await c.globalSave(), true);
   assert.equal(c.state.modelsDirty, false);
@@ -109,7 +116,7 @@ test('stale provider response cannot overwrite a newer selection', async () => {
   c.state.route = 'models';
   const delays = { slow: 60, fast: 5 };
   c.fetch = async (url) => new Promise((resolve) => setTimeout(
-    () => resolve({ ok: true, json: async () => ({ id: url.split('/').pop(), models: [] }) }),
+    () => resolve(jsonResponse({ id: url.split('/').pop(), models: [] })),
     delays[url.split('/').pop()]
   ));
   const slow = c.selectProvider('slow', false);

@@ -661,10 +661,18 @@ async function api(path, opts = {}) {
   const timer = setTimeout(() => controller.abort(new Error('请求超时')), timeoutMs);
   try {
     const res = await fetch(path, { ...requestOpts, signal: controller.signal });
-    const data = await res.json().catch((error) => {
-      if (controller.signal.aborted) throw error;
-      return {};
-    });
+    const text = await res.text();
+    let data = {};
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch (error) {
+        if (controller.signal.aborted) throw error;
+        // A 200 whose body isn't JSON used to be silently coerced to {} — that is
+        // exactly how a broken endpoint renders as "all zeros" instead of an error.
+        if (res.ok) throw new Error('响应不是合法 JSON（HTTP ' + res.status + '）');
+      }
+    }
     if (!res.ok && res.status !== 202) throw new Error(data.error || 'HTTP ' + res.status);
     return data;
   } finally {

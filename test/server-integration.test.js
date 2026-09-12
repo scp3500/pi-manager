@@ -90,6 +90,39 @@ fs.writeFileSync(
   'utf8'
 );
 
+// Fixture session: one assistant message carrying usage, so /api/usage has a
+// non-empty aggregation to return. Guards the "route forgot to await the
+// worker-backed collectUsage → `{}` → dashboard all zeros" regression.
+const usageTs = Date.parse('2024-01-01T00:00:00.000Z');
+fs.writeFileSync(
+  path.join(sessionsDir, '2024-01-01T00-00-00-000Z_00000000-0000-7000-8000-000000000001.jsonl'),
+  [
+    JSON.stringify({
+      type: 'session',
+      id: '00000000-0000-7000-8000-000000000001',
+      timestamp: '2024-01-01T00:00:00.000Z',
+      cwd: tmpRoot,
+    }),
+    JSON.stringify({
+      type: 'message',
+      timestamp: '2024-01-01T00:00:00.000Z',
+      message: {
+        role: 'assistant',
+        provider: 'demo',
+        model: 'demo-model',
+        timestamp: usageTs,
+        usage: {
+          input: 5,
+          output: 6,
+          totalTokens: 11,
+          cost: { total: 0.02 },
+        },
+      },
+    }),
+  ].join('\n') + '\n',
+  'utf8'
+);
+
 process.env.PI_AGENT_DIR = agentDir;
 process.env.PI_CONFIG_DIR = configDir;
 process.env.AGENTS_DIR = agentsDir;
@@ -263,6 +296,21 @@ describe('server integration (isolated tmp)', () => {
     const res = await request('GET', '/api/usage');
     assert.equal(res.status, 200);
     assert.ok(res.json);
+    // must be a real report, not a serialized Promise (`{}`)
+    assert.equal(typeof res.json.requests, 'number');
+    assert.ok(Array.isArray(res.json.models));
+  });
+
+  it('GET /api/usage?window=all aggregates fixture rows (no promise-serialized {})', async () => {
+    const res = await request('GET', '/api/usage?window=all');
+    assert.equal(res.status, 200);
+    assert.ok(res.json && typeof res.json === 'object' && !Array.isArray(res.json));
+    assert.equal(typeof res.json.requests, 'number');
+    assert.ok(res.json.requests >= 1, 'fixture usage row must be aggregated');
+    assert.equal(res.json.totalTokens, 11);
+    assert.ok(Array.isArray(res.json.models));
+    assert.ok(res.json.models.length >= 1, 'fixture model must show up');
+    assert.ok(Array.isArray(res.json.byDay));
   });
 
   it('GET /api/sessions', async () => {

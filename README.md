@@ -66,6 +66,7 @@ cd pi-manager && npm start
 | **模型** | 供应商 CRUD、远程拉模型、默认 Provider/Model |
 | **子代理** | 递归编辑 `E:/pi_agent/pi_config/agents/**/*.md`、工具权限预设、工作流规范 |
 | **用量** | token / 费用趋势；与状态栏同一套 `usage.cost.total` |
+| **提示词结构** | 重建系统提示词并逐区块拆解：token 占比、原文、上下文文件、技能、工具定义开销（[实现文档](docs/prompt-map.md)） |
 | **会话** | 搜索、清理、回收站还原 |
 | **识图** | 集成自研 [OpenVL](https://github.com/scp3500/openvl)；教程页可一键安装 |
 | **插件** | packages / extensions 列表 + 白名单安装 |

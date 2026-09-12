@@ -313,6 +313,15 @@ describe('server integration (isolated tmp)', () => {
     assert.ok(Array.isArray(res.json.byDay));
   });
 
+  it('POST /api/usage/rebuild returns a freshly scanned report', async () => {
+    const res = await request('POST', '/api/usage/rebuild?window=all');
+    assert.equal(res.status, 200);
+    assert.equal(typeof res.json.requests, 'number');
+    assert.ok(res.json.requests >= 1, 'rebuild must rescan session files');
+    assert.equal(res.json.totalTokens, 11);
+    assert.equal(res.json.parsedFiles, 1, 'rebuild drops the index and re-parses');
+  });
+
   it('GET /api/sessions', async () => {
     const res = await request('GET', '/api/sessions');
     assert.equal(res.status, 200);

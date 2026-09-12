@@ -422,6 +422,36 @@ async function loadUsageQuiet(window) {
   }
 }
 
+/** Drop the server-side disk index + caches and rescan every session file.
+ * Recovery path for a stale/corrupt index (or a moved SESSIONS_DIR), which
+ * previously had no UI entry point at all. */
+async function rebuildUsageIndex() {
+  ensureUsageState();
+  const btn = $('#usage-rebuild');
+  if (btn) {
+    if (btn.classList.contains('loading')) return;
+    btn.classList.add('loading');
+  }
+  const w = state.usageWindow || 'all';
+  try {
+    const data = await api(
+      '/api/usage/rebuild?window=' + encodeURIComponent(w),
+      { method: 'POST', timeoutMs: 120000 }
+    );
+    if (!isUsableUsageReport(data)) throw new Error('重建返回空数据');
+    state.usageData = data;
+    state.usageWindow = w;
+    state.usageFetchedAt = Date.now();
+    writeLocalUsageCache(w, data);
+    renderUsagePage();
+    if (typeof showToast === 'function') showToast('用量索引已重建', true);
+  } catch (e) {
+    if (typeof showToast === 'function') showToast('重建索引失败: ' + e.message, false);
+  } finally {
+    if (btn) btn.classList.remove('loading');
+  }
+}
+
 function usageDashHeroHtml() {
   ensureUsageState();
   const u = state.usageData;
@@ -1447,6 +1477,7 @@ function enterUsageRoute() {
 function bindUsageUI() {
   ensureUsageState();
   $('#usage-refresh')?.addEventListener('click', () => loadUsage(true));
+  $('#usage-rebuild')?.addEventListener('click', () => rebuildUsageIndex());
   $('#usage-presets')?.addEventListener('click', (e) => {
     const btn = e.target.closest('.usage-preset');
     if (!btn) return;

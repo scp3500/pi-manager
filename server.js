@@ -23,6 +23,7 @@ const { handleAgentsApi } = require('./lib/routes/agents');
 const { handleModelsApi } = require('./lib/routes/models');
 const { handleOpenvlApi } = require('./lib/routes/openvl');
 const { handleConsoleApi, warmupUsageCache } = require('./lib/routes/console');
+const { closeUsageWorker } = require('./lib/usage-service');
 const { handleChatApi } = require('./lib/routes/chat');
 
 const PUBLIC_DIR = path.resolve(__dirname, 'public');
@@ -194,13 +195,28 @@ process.on('unhandledRejection', (err) => {
   logFatal('unhandledRejection', err);
   // do not exit: a single rejected promise shouldn't kill the console
 });
+
+let shuttingDown = false;
+/** Terminate the usage worker thread, then drain the HTTP server.
+ * The 2s fallback matters on Windows: keep-alive sockets from an open browser
+ * tab otherwise keep `server.close()` from ever reaching its callback. */
+function shutdown() {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  closeUsageWorker()
+    .catch(() => {})
+    .finally(() => {
+      server.close(() => process.exit(0));
+      setTimeout(() => process.exit(0), 2000).unref();
+    });
+}
 process.on('SIGTERM', () => {
   console.log('[' + new Date().toISOString() + '] SIGTERM, shutting down');
-  server.close(() => process.exit(0));
+  shutdown();
 });
 process.on('SIGINT', () => {
   console.log('[' + new Date().toISOString() + '] SIGINT, shutting down');
-  server.close(() => process.exit(0));
+  shutdown();
 });
 
 module.exports = { safePublicPath, server, PORT, BIND_HOST };

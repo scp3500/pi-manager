@@ -6,7 +6,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test test/ops-smoke.test.js test/files-trash.test.js test/runtime-tail.test.js test/sessions-cleanup.test.js test/path-safety.test.js test/http-security.test.js test/agents.test.js test/models-auth.test.js test/optimizations-p0.test.js test/reliability.test.js test/server-integration.test.js test/fetch-models-probe.test.js"
+    "test": "node --test test/ops-smoke.test.js test/files-trash.test.js test/runtime-tail.test.js test/sessions-cleanup.test.js test/path-safety.test.js test/http-security.test.js test/agents.test.js test/models-auth.test.js test/optimizations-p0.test.js test/reliability.test.js test/usage-cache.test.js test/server-integration.test.js test/fetch-models-probe.test.js"
   },
   "engines": {
     "node": ">=18"

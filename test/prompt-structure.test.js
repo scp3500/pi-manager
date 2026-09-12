@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { analyze, estimateTokens, detectPromptHooks, discoverPromptFiles, isProjectTrusted } = require('../lib/prompt-structure');
+const { analyze, estimateTokens, detectPromptHooks, discoverPromptFiles, isProjectTrusted, skillSourcePaths } = require('../lib/prompt-structure');
 
 /** 复刻 pi buildSystemPrompt 的拼装标记，保证切分逻辑被测到的是真实格式 */
 const CTX_OPEN = '\n\n<project_context>\n\n';
@@ -250,5 +250,43 @@ describe('prompt-structure: SYSTEM.md / APPEND_SYSTEM.md 发现规则', () => {
   it('只有全局目录时仍然能找到文件（无需信任）', () => {
     const r = call(path.join(tmp, 'plain'), false);
     assert.equal(r.system, path.join(agentDir, 'SYSTEM.md'));
+  });
+});
+
+describe('prompt-structure: 技能来源（除 loadSkills 默认目录外）', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pi-skillpaths-'));
+  const home = path.join(tmp, 'home');
+  const proj = path.join(tmp, 'work', 'proj');
+  const extra = path.join(tmp, 'shared-skills');
+  for (const d of [path.join(home, '.agents', 'skills'), path.join(proj, '.agents', 'skills'), extra, path.join(tmp, 'work', '.agents', 'skills')]) {
+    fs.mkdirSync(d, { recursive: true });
+  }
+  const settingsFile = path.join(tmp, 'settings.json');
+  fs.writeFileSync(settingsFile, JSON.stringify({ skills: [extra, path.join(tmp, 'nope')] }), 'utf8');
+
+  it('合并 settings.skills、~/.agents/skills 与逐级祖先的 .agents/skills，且只保留存在的目录', () => {
+    const paths = skillSourcePaths(proj, { home, settingsFile });
+    assert.ok(paths.includes(extra), '缺少 settings.skills 路径');
+    assert.ok(paths.includes(path.join(home, '.agents', 'skills')), '缺少用户级 .agents/skills');
+    assert.ok(paths.includes(path.join(proj, '.agents', 'skills')), '缺少项目级 .agents/skills');
+    assert.ok(paths.includes(path.join(tmp, 'work', '.agents', 'skills')), '缺少祖先级 .agents/skills');
+    assert.ok(!paths.some((p) => p.includes('nope')), '不存在的目录不该返回');
+  });
+});
+
+describe('prompt-structure: 技能来源去重', () => {
+  it('cwd 在 HOME 下时 ~/.agents/skills 只出现一次', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pi-skilldedup-'));
+    const home = path.join(tmp, 'home');
+    fs.mkdirSync(path.join(home, '.agents', 'skills'), { recursive: true });
+    const settingsFile = path.join(tmp, 'settings.json');
+    fs.writeFileSync(settingsFile, JSON.stringify({ skills: [] }), 'utf8');
+    try {
+      const paths = skillSourcePaths(path.join(home, 'deep', 'er'), { home, settingsFile });
+      const hit = paths.filter((p) => p === path.join(home, '.agents', 'skills'));
+      assert.equal(hit.length, 1, '重复目录未去重: ' + paths.join(' | '));
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
   });
 });

@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { analyze, estimateTokens, detectPromptHooks, discoverPromptFiles, isProjectTrusted, skillSourcePaths } = require('../lib/prompt-structure');
+const { analyze, estimateTokens, detectPromptHooks, detectExtensionTools, discoverPromptFiles, isProjectTrusted, skillSourcePaths } = require('../lib/prompt-structure');
 
 /** 复刻 pi buildSystemPrompt 的拼装标记，保证切分逻辑被测到的是真实格式 */
 const CTX_OPEN = '\n\n<project_context>\n\n';
@@ -306,6 +306,49 @@ describe('prompt-structure: provider 上报值对账', () => {
       assert.equal(typeof s.tokens, 'number');
       assert.equal(typeof s.piTokens, 'number');
       assert.equal(s.piTokens, Math.ceil(s.content.length / 4));
+    }
+  });
+});
+
+describe('prompt-structure: 扩展注册的工具识别', () => {
+  it('从扩展源码里扫出 registerTool 的名字，忽略没有注册工具的扩展', () => {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pi-exttools-'));
+    const mk = (name, body) => {
+      fs.mkdirSync(path.join(tmp, name), { recursive: true });
+      fs.writeFileSync(path.join(tmp, name, 'index.ts'), body, 'utf8');
+    };
+    mk('with-tools', 'pi.registerTool({ name: "todo", description: "t", parameters: P });\npi.registerTool({ name: "subagent", parameters: Q });');
+    mk('no-tools', 'pi.on("agent_start", () => {});');
+    fs.writeFileSync(path.join(tmp, 'top-level.ts'), 'pi.registerTool({ name: "extra" });', 'utf8');
+    try {
+      const names = detectExtensionTools(tmp).sort();
+      assert.deepEqual(names, ['extra', 'subagent', 'todo']);
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('prompt-structure: 工具探测的解析与降级', () => {
+  it('解析子进程输出：取最后一行 JSON，过滤脏数据', () => {
+    const { parseProbeOutput } = require('../lib/extension-tools');
+    const out = 'noise line\n[{"name":"todo","chars":352},{"name":"subagent","chars":1797}]';
+    assert.deepEqual(parseProbeOutput(out).map((t) => t.name), ['todo', 'subagent']);
+    assert.equal(parseProbeOutput(''), null);
+    assert.equal(parseProbeOutput('boom'), null);
+    assert.deepEqual(parseProbeOutput('[{"chars":1}]'), [], '缺 name 应被过滤掉');
+    assert.deepEqual(parseProbeOutput('[]'), []);
+  });
+
+  it('PROMPT_MAP_NO_PROBE=1 时直接返回 null（测试与离线场景不 spawn 子进程）', async () => {
+    process.env.PROMPT_MAP_NO_PROBE = '1';
+    const tools = require('../lib/extension-tools');
+    tools.clearProbeCache();
+    try {
+      assert.equal(await tools.probeExtensionTools(), null);
+    } finally {
+      delete process.env.PROMPT_MAP_NO_PROBE;
+      tools.clearProbeCache();
     }
   });
 });

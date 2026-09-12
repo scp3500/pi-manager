@@ -247,31 +247,40 @@ function pmBlocksHtml(d) {
 function pmOverheadHtml(d) {
   const t = d.toolsSchema;
   if (!t || !t.items || !t.items.length) return '';
-  const sum = (d.piTokens || 0) + t.piTokens;
+  const ext = t.extensionItems || [];
+  const toolsPi = t.piTokens + (t.extensionPiTokens || 0);
+  const toolsWeighted = t.tokens + (t.extensionTokens || 0);
+  const sum = (d.piTokens || 0) + toolsPi;
+  const sumWeighted = (d.estTokens || 0) + toolsWeighted;
   const rows = [
-    { name: '系统提示词（本页统计）', pi: d.piTokens, weighted: d.estTokens, chars: d.totalChars },
-    ...t.items.map((i) => ({ name: '工具定义 · ' + i.name, pi: i.piTokens, weighted: i.tokens, chars: i.chars })),
+    { name: '系统提示词（本页统计）', pi: d.piTokens, weighted: d.estTokens, tag: '' },
+    ...t.items.map((i) => ({ name: '工具定义 · ' + i.name, pi: i.piTokens, weighted: i.tokens, tag: '内置' })),
+    ...ext.map((i) => ({ name: '工具定义 · ' + i.name, pi: i.piTokens, weighted: i.tokens, tag: '扩展' })),
   ]
     .map(
       (r) =>
-        '<li class="pm-file"><span class="pm-file-idx"><i data-lucide="minus"></i></span>' +
-        '<div class="pm-file-body"><div class="pm-file-path">' + pmEsc(r.name) + '</div>' +
-        '<div class="pm-file-bar"><i style="width:' +
-        Math.max(3, (r.pi / sum) * 100).toFixed(2) + '%"></i></div></div>' +
-        '<span class="pm-file-chars">' + pmInt(r.pi) + '<small>pi 口径</small></span>' +
-        '<span class="pm-file-pct">' + pmInt(r.weighted) + '</span></li>'
+        '<li class="pm-ov-row"><span class="pm-ov-dot" style="--pm-tone:var(--chart-' +
+        (r.tag === '扩展' ? 4 : r.tag === '内置' ? 6 : 1) + ')"></span>' +
+        '<div class="pm-ov-body"><div class="pm-ov-name">' + pmEsc(r.name) +
+        (r.tag ? '<span class="pm-tag">' + pmEsc(r.tag) + '</span>' : '') + '</div>' +
+        '<div class="pm-ov-bar"><i style="width:' +
+        Math.max(2, (r.pi / sum) * 100).toFixed(2) + '%"></i></div></div>' +
+        '<span class="pm-ov-val">' + pmInt(r.pi) + '<small>pi 口径</small>' +
+        '<em>' + pmInt(r.weighted) + ' 加权</em></span></li>'
     )
     .join('');
+  const missing = (d.extensionTools || []).filter((n) => !ext.some((e) => e.name === n));
   return (
     '<section class="pm-card" id="pm-card-overhead">' +
     '<div class="pm-card-head"><h3>一次请求的固定开销</h3>' +
-    '<p class="pm-card-hint">pi 口径 · 右列为加权估算</p></div>' +
-    '<ul class="pm-files">' + rows + '</ul>' +
+    '<p class="pm-card-hint">pi 口径 ' + pmInt(sum) + ' · 加权 ' + pmInt(sumWeighted) + ' · 右列为加权</p></div>' +
+    '<ul class="pm-ov">' + rows + '</ul>' +
     pmReportedRow(d, sum) +
-    '<p class="pm-note">合计 <b>' + pmInt(sum) + '</b> tokens（pi 口径）。pi 状态栏/上下文占用还包含' +
-    '扩展注册的额外工具（如 subagent、todo）与消息历史，所以会更高；' +
-    (t.extensionToolsNotCounted ? '本页只精确统计内置工具。' : '') +
-    '</p></section>'
+    '<p class="pm-note">合计 <b>' + pmInt(sum) + '</b> tokens（pi 口径）＝ 系统提示词 + 全部工具定义（含扩展注册的）。'
+      + (missing.length
+          ? '以下扩展工具未能取到 schema（探测失败），未计入：<b>' + pmEsc(missing.join('、')) + '</b>。'
+          : '')
+      + 'pi 状态栏的数字还包含消息历史，所以会略高。</p></section>'
   );
 }
 

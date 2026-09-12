@@ -6910,6 +6910,35 @@ body.chat-open #page-runtime .content.runtime-wrap {
 .pm-reported-meta p { margin: 0; font-size: var(--fs-xs); color: var(--text); }
 .pm-reported-meta p.muted { color: var(--faint); }
 
+
+/* 固定开销列表：自成三列，窄视口下只折数值列，不整行错位 */
+.pm-ov { list-style: none; margin: 0; padding: 0; }
+.pm-ov-row {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.pm-ov-row:last-child { border-bottom: 0; }
+.pm-ov-dot { width: 10px; height: 10px; border-radius: 3px; background: var(--pm-tone); }
+.pm-ov-body { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.pm-ov-name { font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pm-ov-bar { height: 5px; border-radius: var(--radius-pill); background: rgba(var(--line-rgb), 0.5); overflow: hidden; }
+.pm-ov-bar i { display: block; height: 100%; background: var(--pm-tone); border-radius: var(--radius-pill); }
+.pm-ov-val {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semi);
+}
+.pm-ov-val small { font-size: var(--fs-xs); font-weight: var(--fw-normal); color: var(--muted); }
+.pm-ov-val em { font-size: var(--fs-xs); font-weight: var(--fw-normal); color: var(--faint); font-style: normal; }
+
 @media (prefers-reduced-motion: reduce) {
   .pm-cell,
   .pm-chev,

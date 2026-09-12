@@ -125,6 +125,7 @@ const REPORT = {
   estTokens: 500,
   piTokens: 380,
   accountedChars: 1000,
+  extensionTools: ['subagent', 'todo'],
   reportedUsage: {
     tokens: 8803,
     input: 7090,
@@ -143,7 +144,14 @@ const REPORT = {
     chars: 1165,
     tokens: 291,
     piTokens: 292,
-    extensionToolsNotCounted: true,
+    extensionItems: [
+      { name: 'subagent', chars: 1797, tokens: 450, piTokens: 450, fromExtension: true },
+      { name: 'todo', chars: 352, tokens: 88, piTokens: 88, fromExtension: true },
+    ],
+    extensionChars: 2149,
+    extensionTokens: 538,
+    extensionPiTokens: 538,
+    extensionToolsNotCounted: false,
   },
   promptPrefix: {
     enabled: true,
@@ -301,9 +309,12 @@ describe('promptmap-ui: 一次请求的固定开销', () => {
     assert.ok(html.includes('一次请求的固定开销'), '缺少开销卡片');
     assert.ok(html.includes('工具定义 · read'), '缺少 read 工具定义');
     assert.ok(html.includes('工具定义 · bash'), '缺少 bash 工具定义');
-    // 380（提示词）+ 164 + 128 = 672
-    assert.ok(html.includes('672'), '合计未按 pi 口径相加: ' + (html.match(/合计 <b>[^<]*<\/b>/) || [''])[0]);
-    assert.ok(html.includes('subagent'), '未说明扩展工具未计入');
+    // 380（提示词）+ 164 + 128（内置）+ 450 + 88（扩展）= 1210
+    assert.ok(html.includes('1,210'), '合计未按 pi 口径相加');
+    assert.ok(html.includes('工具定义 · subagent'), '扩展工具未进列表');
+    assert.ok(html.includes('工具定义 · todo'));
+    assert.ok(html.includes('内置'), '缺内置标记');
+    assert.ok(html.includes('扩展'), '缺扩展标记');
   });
 
   it('和 provider 上报值对账，并给出差额来源', () => {
@@ -318,6 +329,17 @@ describe('promptmap-ui: 一次请求的固定开销', () => {
     const h = loaded(cum);
     assert.ok(h.root.innerHTML.includes('累计计数器'), '未标记累计');
     assert.ok(h.root.innerHTML.includes('1,280'), '未给单轮增量');
+  });
+
+  it('扩展工具探测失败时，退化成点名提示', () => {
+    const partial = {
+      ...REPORT,
+      toolsSchema: { ...REPORT.toolsSchema, extensionItems: [], extensionPiTokens: 0, extensionTokens: 0 },
+      extensionTools: ['subagent', 'todo'],
+    };
+    const h = loaded(partial);
+    assert.ok(h.root.innerHTML.includes('未能取到 schema'), '未提示探测失败');
+    assert.ok(h.root.innerHTML.includes('subagent、todo'));
   });
 
   it('缺工具定义数据时不渲染该卡片', () => {

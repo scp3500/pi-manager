@@ -322,6 +322,18 @@ describe('server integration (isolated tmp)', () => {
     assert.equal(res.json.parsedFiles, 1, 'rebuild drops the index and re-parses');
   });
 
+  it('GET /api/prompt-structure 重建系统提示词结构且切分无遗漏', async () => {
+    const res = await request('GET', '/api/prompt-structure?cwd=' + encodeURIComponent(tmpRoot));
+    // 隔离环境不强制依赖本机装了 pi 包；未装时路由返回 503，跳过断言
+    if (res.status === 503) return;
+    assert.equal(res.status, 200);
+    assert.equal(typeof res.json.totalChars, 'number');
+    assert.equal(res.json.accountedChars, res.json.totalChars, '区块字符数之和必须等于总长');
+    assert.ok(Array.isArray(res.json.sections) && res.json.sections.length >= 1);
+    assert.ok(Array.isArray(res.json.cwds) && res.json.cwds.length >= 1);
+    assert.equal(typeof res.json.estTokens, 'number');
+  });
+
   it('GET /api/sessions', async () => {
     const res = await request('GET', '/api/sessions');
     assert.equal(res.status, 200);

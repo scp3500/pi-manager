@@ -24,6 +24,7 @@ const { handleModelsApi } = require('./lib/routes/models');
 const { handleOpenvlApi } = require('./lib/routes/openvl');
 const { handleConsoleApi, warmupUsageCache } = require('./lib/routes/console');
 const { closeUsageWorker } = require('./lib/usage-service');
+const promptStructureApi = require('./lib/prompt-structure');
 const { handleChatApi } = require('./lib/routes/chat');
 
 const PUBLIC_DIR = path.resolve(__dirname, 'public');
@@ -237,6 +238,10 @@ if (require.main === module) {
     // warm usage disk index into memory so first /api/usage after restart is fast
     setImmediate(() => {
       warmupUsageCache();
+      // pi 包首次 import 约 5s，预热后首个页面打开即秒开
+      promptStructureApi
+        .warm()
+        .then((r) => console.log('  prompt:   ' + (r.ok ? 'structure warm' : 'skip ' + r.error)));
     });
     console.log('  pid:      ' + process.pid);
   });

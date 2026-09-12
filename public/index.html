@@ -58,6 +58,9 @@
           <a href="#/prompt" class="nav-more-item" data-route="prompt" role="menuitem">
             <i data-lucide="file-text"></i><span>提示词</span>
           </a>
+          <a href="#/promptmap" class="nav-more-item" data-route="promptmap" role="menuitem">
+            <i data-lucide="scan-text"></i><span>提示词结构</span>
+          </a>
           <a href="#/knowledge" class="nav-more-item" data-route="knowledge" role="menuitem">
             <i data-lucide="library"></i><span>知识库</span>
           </a>
@@ -908,6 +911,7 @@
           <button type="button" id="prompt-reload" class="btn ghost sm">重新加载</button>
           <button type="button" id="prompt-delete" class="btn danger sm">删除</button>
           <button type="button" id="prompt-save" class="btn primary sm">保存</button>
+          <a class="btn ghost sm" href="#/promptmap" title="查看拼装后的系统提示词结构">结构分析</a>
         </div>
       </div>
       <div class="split">
@@ -929,6 +933,23 @@
             <div id="prompt-backups" class="preset-row"></div>
           </div>
         </section>
+      </div>
+    </section>
+
+    <!-- ═══════════════ 提示词结构 ═══════════════ -->
+    <section id="page-promptmap" class="page hidden">
+      <div class="toolbar">
+        <div class="toolbar-title">提示词结构</div>
+        <p class="page-hint">按 pi 的拼装规则重建系统提示词，逐区块拆解占用与来源</p>
+        <div class="toolbar-actions">
+          <input type="search" id="pm-search" class="pm-search" placeholder="搜索提示词内容…" aria-label="搜索提示词内容" />
+          <select id="pm-cwd" class="pm-select" aria-label="工作目录"></select>
+          <button type="button" id="pm-expand-all" class="btn ghost sm">展开 / 收起</button>
+          <button type="button" id="pm-refresh" class="btn ghost sm">重新分析</button>
+        </div>
+      </div>
+      <div class="content pm-page" id="pm-root">
+        <div class="empty"><p>分析中…</p></div>
       </div>
     </section>
 
@@ -1471,6 +1492,7 @@ pi update --extensions</pre>
   <script src="/content-pages.js"></script>
   <script src="/dash-sessions.js?v=no-jump-1"></script>
   <script src="/usage-ui.js"></script>
+  <script src="/promptmap-ui.js"></script>
   <script src="/runtime-ui.js"></script>
   <script src="/ops-ui.js"></script>
   <script src="/trash-ui.js"></script>

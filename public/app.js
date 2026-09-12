@@ -511,6 +511,7 @@ async function routeFromHash() {
   else if (pathOnly.startsWith('trash')) next = 'trash';
   else if (pathOnly.startsWith('agents')) next = 'agents';
   else if (pathOnly.startsWith('openvl')) next = 'openvl';
+  else if (pathOnly.startsWith('promptmap')) next = 'promptmap';
   else if (pathOnly.startsWith('prompt')) next = 'prompt';
   else if (pathOnly.startsWith('skills')) next = 'skills';
   else if (pathOnly.startsWith('plugins')) next = 'plugins';
@@ -552,6 +553,7 @@ async function routeFromHash() {
   const moreRoutes = {
     openvl: 1,
     prompt: 1,
+    promptmap: 1,
     knowledge: 1,
     skills: 1,
     plugins: 1,
@@ -573,7 +575,7 @@ async function routeFromHash() {
   $('#page-search')?.classList.toggle('hidden', next !== 'search');
   $('#page-trash')?.classList.toggle('hidden', next !== 'trash');
   $('#page-guides')?.classList.toggle('hidden', next !== 'guides');
-  ['prompt', 'skills', 'plugins', 'memory', 'knowledge', 'workspaces'].forEach((pg) => {
+  ['prompt', 'promptmap', 'skills', 'plugins', 'memory', 'knowledge', 'workspaces'].forEach((pg) => {
     $('#page-' + pg)?.classList.toggle('hidden', next !== pg);
   });
   updateGlobalSaveUI();
@@ -585,6 +587,8 @@ async function routeFromHash() {
     if (typeof enterDashRoute === 'function') enterDashRoute(next);
   } else if (next === 'usage') {
     if (typeof enterUsageRoute === 'function') enterUsageRoute();
+  } else if (next === 'promptmap') {
+    if (typeof enterPromptMapRoute === 'function') enterPromptMapRoute();
   } else if (next === 'runtime') {
     if (typeof enterRuntimeRoute === 'function') enterRuntimeRoute();
   } else if (next === 'search') {

@@ -119,6 +119,7 @@ function pmStatsHtml(d) {
     '<span class="pm-total-unit">tokens</span></div>' +
     '<p class="pm-total-sub">' + pmInt(d.totalChars) + ' 字符 · ' + pmInt(d.totalLines) + ' 行 · ' +
     '<span class="' + (ok ? 'pm-ok' : 'pm-warn') + '">' + (ok ? '切分自检通过' : '切分自检未通过') + '</span></p>' +
+    '<p class="pm-total-sub pm-alt">pi 口径 ' + pmInt(d.piTokens) + ' tokens（字符 ÷ 4，状态栏用的就是这个）</p>' +
     '<p class="pm-cwd-line"><i data-lucide="folder-root"></i><code>' + pmEsc(d.cwd) + '</code>' +
     '<span class="pm-pi-ver">pi ' + pmEsc(d.piVersion) + '</span></p>' +
     (d.customPromptFile
@@ -129,7 +130,7 @@ function pmStatsHtml(d) {
       ? '<p class="pm-cwd-line"><i data-lucide="file-plus"></i>追加提示词文件（不替换）：<code>' +
         pmEsc(d.appendPromptFile) + '</code></p>'
       : '') +
-    '<p class="pm-note">估算口径：ASCII 4 字符 / token，CJK 1.5 字符 / token（本机无 provider 上报值可校准）</p>' +
+    '<p class="pm-note">本页主数字按「ASCII 4 字符 / token、CJK 1.5 字符 / token」加权；pi 自己的估算（状态栏、上下文占用）是纯字符 ÷ 4，中文偏多时低于真实值</p>' +
     ((d.notes || []).length
       ? '<ul class="pm-notes">' + d.notes.map((n) => '<li>' + pmEsc(n) + '</li>').join('') + '</ul>'
       : '') +
@@ -243,6 +244,62 @@ function pmBlocksHtml(d) {
   return '<section class="pm-blocks">' + pmSectionsOf(d).map(pmBlockHtml).join('') + '</section>';
 }
 
+function pmOverheadHtml(d) {
+  const t = d.toolsSchema;
+  if (!t || !t.items || !t.items.length) return '';
+  const sum = (d.piTokens || 0) + t.piTokens;
+  const rows = [
+    { name: '系统提示词（本页统计）', pi: d.piTokens, weighted: d.estTokens, chars: d.totalChars },
+    ...t.items.map((i) => ({ name: '工具定义 · ' + i.name, pi: i.piTokens, weighted: i.tokens, chars: i.chars })),
+  ]
+    .map(
+      (r) =>
+        '<li class="pm-file"><span class="pm-file-idx"><i data-lucide="minus"></i></span>' +
+        '<div class="pm-file-body"><div class="pm-file-path">' + pmEsc(r.name) + '</div>' +
+        '<div class="pm-file-bar"><i style="width:' +
+        Math.max(3, (r.pi / sum) * 100).toFixed(2) + '%"></i></div></div>' +
+        '<span class="pm-file-chars">' + pmInt(r.pi) + '<small>pi 口径</small></span>' +
+        '<span class="pm-file-pct">' + pmInt(r.weighted) + '</span></li>'
+    )
+    .join('');
+  return (
+    '<section class="pm-card" id="pm-card-overhead">' +
+    '<div class="pm-card-head"><h3>一次请求的固定开销</h3>' +
+    '<p class="pm-card-hint">pi 口径 · 右列为加权估算</p></div>' +
+    '<ul class="pm-files">' + rows + '</ul>' +
+    pmReportedRow(d, sum) +
+    '<p class="pm-note">合计 <b>' + pmInt(sum) + '</b> tokens（pi 口径）。pi 状态栏/上下文占用还包含' +
+    '扩展注册的额外工具（如 subagent、todo）与消息历史，所以会更高；' +
+    (t.extensionToolsNotCounted ? '本页只精确统计内置工具。' : '') +
+    '</p></section>'
+  );
+}
+
+/** 和 provider 上报值对账：pi 状态栏取的就是这个数（input + output + cacheRead + cacheWrite） */
+function pmReportedRow(d, sum) {
+  const u = d.reportedUsage;
+  if (!u) return '';
+  const label = u.cumulative
+    ? 'pi 上报（该 provider 的 cacheRead 似为累计计数器）'
+    : 'pi 上报（最近一次会话，含工具与消息）';
+  const hint = u.cumulative
+    ? '单轮增量 ≈' + pmInt(u.perTurnApprox || 0) + ' tokens，更接近真实上下文'
+    : '比本页合计多出的部分 = 扩展工具 + 消息历史';
+  return (
+    '<div class="pm-reported">' +
+    '<div class="pm-reported-main">' +
+    '<span class="pm-reported-num">' + pmInt(u.tokens) + '</span>' +
+    '<span class="pm-reported-unit">tokens</span>' +
+    '</div>' +
+    '<div class="pm-reported-meta">' +
+    '<p>' + pmEsc(label) + '</p>' +
+    '<p class="muted">in ' + pmInt(u.input) + ' · out ' + pmInt(u.output) + ' · cacheRead ' + pmInt(u.cacheRead) +
+    (u.model ? ' · ' + pmEsc(u.model) : '') + '</p>' +
+    '<p class="muted">' + pmEsc(hint) + '</p>' +
+    '</div></div>'
+  );
+}
+
 function pmChecksHtml(d) {
   const checks = d.checks || [];
   const body = checks.length
@@ -325,7 +382,7 @@ function renderPromptMap() {
   if (sel && d) sel.innerHTML = pmCwdOptions(d);
   if (!root || !d) return;
   root.innerHTML =
-    pmStatsHtml(d) + pmBlocksHtml(d) + pmHooksHtml(d) + pmChecksHtml(d) + pmHeadingsHtml(d);
+    pmStatsHtml(d) + pmBlocksHtml(d) + pmOverheadHtml(d) + pmHooksHtml(d) + pmChecksHtml(d) + pmHeadingsHtml(d);
   if (typeof refreshIcons === 'function') refreshIcons(root);
   // 已处于展开态的块（切换 cwd 或搜索后重建）需要立刻补上正文
   for (const key of Object.keys(state.promptMapOpen)) {

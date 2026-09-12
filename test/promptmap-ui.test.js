@@ -123,7 +123,28 @@ const REPORT = {
   totalChars: 1000,
   totalLines: 40,
   estTokens: 500,
+  piTokens: 380,
   accountedChars: 1000,
+  reportedUsage: {
+    tokens: 8803,
+    input: 7090,
+    output: 177,
+    cacheRead: 1536,
+    cacheWrite: 0,
+    model: 'deepseek-flash',
+    cumulative: false,
+    perTurnApprox: null,
+  },
+  toolsSchema: {
+    items: [
+      { name: 'read', chars: 653, tokens: 163, piTokens: 164 },
+      { name: 'bash', chars: 512, tokens: 128, piTokens: 128 },
+    ],
+    chars: 1165,
+    tokens: 291,
+    piTokens: 292,
+    extensionToolsNotCounted: true,
+  },
   promptPrefix: {
     enabled: true,
     chars: 2262,
@@ -197,6 +218,7 @@ describe('promptmap-ui: Stats 与 tokens 单位', () => {
     assert.ok(html.includes('40 行'), '行数缺失');
     assert.ok(html.includes('切分自检通过'), '自检状态缺失');
     assert.ok(html.includes('APPEND_SYSTEM.md'), '未显示追加提示词文件');
+    assert.ok(html.includes('pi 口径 380 tokens'), '缺少 pi 口径数字');
     assert.ok(h.sel.innerHTML.includes('E:\\proj\\demo'), 'cwd 选择器未填充');
   });
 
@@ -269,6 +291,39 @@ describe('promptmap-ui: 分区块与展开', () => {
     const h = loaded(REPORT);
     await h.ctx.pmCopy('context');
     assert.equal(h.copied[0], 'CTX RAW');
+  });
+});
+
+describe('promptmap-ui: 一次请求的固定开销', () => {
+  it('列出系统提示词与各内置工具定义，并按 pi 口径给合计', () => {
+    const h = loaded(REPORT);
+    const html = h.root.innerHTML;
+    assert.ok(html.includes('一次请求的固定开销'), '缺少开销卡片');
+    assert.ok(html.includes('工具定义 · read'), '缺少 read 工具定义');
+    assert.ok(html.includes('工具定义 · bash'), '缺少 bash 工具定义');
+    // 380（提示词）+ 164 + 128 = 672
+    assert.ok(html.includes('672'), '合计未按 pi 口径相加: ' + (html.match(/合计 <b>[^<]*<\/b>/) || [''])[0]);
+    assert.ok(html.includes('subagent'), '未说明扩展工具未计入');
+  });
+
+  it('和 provider 上报值对账，并给出差额来源', () => {
+    const h = loaded(REPORT);
+    assert.ok(h.root.innerHTML.includes('8,803'), '缺少上报值');
+    assert.ok(h.root.innerHTML.includes('含工具与消息'), '缺少口径说明');
+    assert.ok(h.root.innerHTML.includes('deepseek-flash'));
+  });
+
+  it('cacheRead 为累计计数时改用单轮增量提示', () => {
+    const cum = { ...REPORT, reportedUsage: { ...REPORT.reportedUsage, tokens: 426990, cumulative: true, perTurnApprox: 1280 } };
+    const h = loaded(cum);
+    assert.ok(h.root.innerHTML.includes('累计计数器'), '未标记累计');
+    assert.ok(h.root.innerHTML.includes('1,280'), '未给单轮增量');
+  });
+
+  it('缺工具定义数据时不渲染该卡片', () => {
+    const noTools = { ...REPORT, toolsSchema: undefined };
+    const h = loaded(noTools);
+    assert.ok(!h.root.innerHTML.includes('一次请求的固定开销'));
   });
 });
 

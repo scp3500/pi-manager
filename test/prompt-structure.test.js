@@ -290,3 +290,22 @@ describe('prompt-structure: 技能来源去重', () => {
     }
   });
 });
+
+describe('prompt-structure: provider 上报值对账', () => {
+  it('pi 口径 = 字符 ÷ 4，与加权估算分开给出', () => {
+    const f = fixture({ contextFiles: [{ path: 'a.md', content: '中'.repeat(100) }] });
+    const r = analyze(f.prompt, {});
+    assert.equal(r.piTokens, Math.ceil(f.prompt.length / 4));
+    assert.ok(r.estTokens > r.piTokens, '中文多时加权估算应高于 pi 口径');
+    assert.equal(r.sections.reduce((n, s) => n + s.piTokens, 0), r.sections.reduce((n, s) => n + s.piTokens, 0));
+  });
+
+  it('每个区块都同时带两种口径', () => {
+    const r = analyze(fixture(FULL).prompt, {});
+    for (const s of r.sections) {
+      assert.equal(typeof s.tokens, 'number');
+      assert.equal(typeof s.piTokens, 'number');
+      assert.equal(s.piTokens, Math.ceil(s.content.length / 4));
+    }
+  });
+});

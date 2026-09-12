@@ -6523,6 +6523,7 @@ body.chat-open #page-runtime .content.runtime-wrap {
   line-height: 1;
 }
 .pm-total-unit { font-size: var(--fs-md); color: var(--muted); }
+.pm-total-sub.pm-alt { color: var(--muted); opacity: 0.85; }
 .pm-total-sub { margin: var(--sp-2) 0 0; font-size: var(--fs-sm); color: var(--muted); }
 .pm-ok { color: var(--ok); }
 .pm-warn { color: var(--warn); }
@@ -6885,6 +6886,29 @@ body.chat-open #page-runtime .content.runtime-wrap {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+
+.pm-reported {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  margin: var(--sp-3) 0 0;
+  padding: var(--sp-3);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+}
+.pm-reported-main { display: flex; align-items: baseline; gap: 6px; }
+.pm-reported-num {
+  font-size: clamp(var(--fs-title), 1.9vw, 24px);
+  font-weight: var(--fw-semi);
+  font-variant-numeric: tabular-nums;
+}
+.pm-reported-unit { font-size: var(--fs-xs); color: var(--muted); }
+.pm-reported-meta { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.pm-reported-meta p { margin: 0; font-size: var(--fs-xs); color: var(--text); }
+.pm-reported-meta p.muted { color: var(--faint); }
 
 @media (prefers-reduced-motion: reduce) {
   .pm-cell,

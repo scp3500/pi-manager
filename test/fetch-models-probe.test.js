@@ -10,7 +10,33 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pi-mgr-probe-'));
 process.env.MODELS_FILE = path.join(tmp, 'models.json');
 process.env.PI_AGENT_DIR = tmp;
 
-const { testProviderConnection } = require('../lib/fetch-models');
+const { testProviderConnection, knownAnthropicBaseUrl } = require('../lib/fetch-models');
+
+describe('knownAnthropicBaseUrl 补齐厂商 anthropic 前缀', () => {
+  it('DeepSeek 根路径 / 带 /v1 / 带 /v1/messages 都归一到 /anthropic/v1/messages', () => {
+    for (const b of [
+      'https://api.deepseek.com',
+      'https://api.deepseek.com/',
+      'https://api.deepseek.com/v1',
+      'https://api.deepseek.com/v1/messages',
+    ]) {
+      const r = knownAnthropicBaseUrl(b);
+      assert.ok(r, b + ' 应给出补全结果');
+      assert.equal(r.endpoint, 'https://api.deepseek.com/anthropic/v1/messages', b);
+      assert.equal(r.baseUrl, 'https://api.deepseek.com/anthropic', b);
+    }
+  });
+
+  it('已带前缀 → 返回 null（不重复纠偏）', () => {
+    assert.equal(knownAnthropicBaseUrl('https://api.deepseek.com/anthropic'), null);
+    assert.equal(knownAnthropicBaseUrl('https://api.deepseek.com/anthropic/v1'), null);
+  });
+
+  it('未知厂商 → null，不猜测', () => {
+    assert.equal(knownAnthropicBaseUrl('https://api.anthropic.com'), null);
+    assert.equal(knownAnthropicBaseUrl('not a url'), null);
+  });
+});
 
 describe('testProviderConnection 跟随模型级 API 覆盖', () => {
   let server;
@@ -59,6 +85,25 @@ describe('testProviderConnection 跟随模型级 API 覆盖', () => {
                 { id: 'muse-y', api: 'google-generative-ai' },
                 { id: 'plain-m', headers: { 'X-Model': 'm' } },
               ],
+            },
+            'test-anthropic': {
+              // 无 /v1 后缀：验证 anthropic 分支会自己拼 /v1/messages
+              baseUrl: 'http://127.0.0.1:' + port,
+              api: 'anthropic-messages',
+              apiKey: 'sk-ant-test',
+              models: [{ id: 'claude-x' }],
+            },
+            'test-anthropic-bare': {
+              baseUrl: 'http://127.0.0.1:' + port + '/anthropic',
+              api: 'anthropic-messages',
+              apiKey: 'sk-ant-test',
+              models: [{ id: 'claude-y' }],
+            },
+            'test-unsupported': {
+              baseUrl: 'http://127.0.0.1:' + port + '/v1',
+              api: 'mistral-conversations',
+              apiKey: 'sk-test',
+              models: [{ id: 'm-un' }],
             },
           },
         },
@@ -135,5 +180,43 @@ describe('testProviderConnection 跟随模型级 API 覆盖', () => {
     assert.equal(r.ok, true);
     assert.match(r.endpoint, /\/v1\/responses$/);
     assert.equal(r.api, 'openai-responses');
+  });
+
+  it('api: anthropic-messages → 走 /v1/messages + anthropic-version，不再降级成 chat/completions', async () => {
+    hits.length = 0;
+    const r = await testProviderConnection('test-anthropic', { model: 'claude-x' });
+    assert.equal(r.ok, true);
+    assert.equal(r.api, 'anthropic-messages');
+    assert.equal(r.apiUsed, 'anthropic-messages');
+    assert.match(r.endpoint, /\/v1\/messages$/);
+    assert.doesNotMatch(r.endpoint, /chat\/completions/);
+
+    const hit = hits.find((h) => h.url.includes('/v1/messages'));
+    assert.ok(hit, '应请求 /v1/messages endpoint');
+    assert.equal(hit.body.model, 'claude-x');
+    assert.equal(hit.body.max_tokens, 1);
+    assert.ok(Array.isArray(hit.body.messages), 'anthropic payload 应含 messages');
+    assert.equal(hit.body.input, undefined, '不应使用 responses 格式');
+    assert.equal(hit.body.stream, undefined, 'anthropic 探测不需要 stream');
+    assert.equal(hit.headers['anthropic-version'], '2023-06-01');
+    assert.equal(hit.headers.authorization, 'Bearer sk-ant-test');
+  });
+
+  it('anthropic baseUrl 带额外路径 → 规范化为 /v1/messages，不吞掉同名段', async () => {
+    hits.length = 0;
+    const r = await testProviderConnection('test-anthropic-bare', { model: 'claude-y' });
+    assert.equal(r.ok, true);
+    assert.match(r.endpoint, /\/v1\/messages$/);
+  });
+
+  it('未实现协议 → 显式 ok:false，不允许静默降级出假绿灯', async () => {
+    hits.length = 0;
+    const r = await testProviderConnection('test-unsupported', { model: 'm-un' });
+    assert.equal(r.ok, false);
+    assert.equal(r.supported, false);
+    assert.equal(r.api, 'mistral-conversations');
+    assert.equal(r.apiUsed, null);
+    assert.match(r.error, /暂不支持探测/);
+    assert.equal(hits.length, 0, '不支持探测时不应发出任何请求');
   });
 });

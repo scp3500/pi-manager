@@ -4,7 +4,7 @@
 
 # Pi Manager
 
-### [Pi Coding Agent](https://github.com/badlogic/pi-mono) 的本地 Web 控制台
+### [Pi Coding Agent](https://github.com/earendil-works/pi) 的本地 Web 控制台
 
 模型 · 子代理 · 运行态 · 用量 · 会话 · 识图 · 工作区  
 零 npm 依赖 · 打开 `localhost:3001` 即可
@@ -93,7 +93,7 @@ cd pi-manager && npm start
 
 | 组件 | 角色 |
 |------|------|
-| **[Pi](https://github.com/badlogic/pi-mono)** | 数据面：配置与会话在 `~/.pi/agent` |
+| **[Pi](https://github.com/earendil-works/pi)** | 数据面：配置与会话在 `~/.pi/agent`；已适配 **1.0.2**（可编辑 `samplingParams` / `samplingParamsByThinkingLevel`） |
 | **Node ≥ 18** | 运行面：本仓库 **0** 个 production npm 依赖 |
 | **[OpenVL](https://github.com/scp3500/openvl)**（同作者） | 可选识图能力；Manager 管理其配置，教程页可一键安装 |
 | **工作区** | 可选内容根 |
@@ -263,7 +263,7 @@ npm test
 | 项目 | 关系 |
 |------|------|
 | **[OpenVL](https://github.com/scp3500/openvl)** | **同作者**。本机看图 CLI / Skill；Manager 的识图页管理其配置与一键安装 |
-| **[Pi Coding Agent](https://github.com/badlogic/pi-mono)** | 上游 Agent 运行时；Manager 读写其 `~/.pi/agent` 配置与会话 |
+| **[Pi Coding Agent](https://github.com/earendil-works/pi)** | 上游 Agent 运行时；Manager 读写其 `~/.pi/agent` 配置与会话（适配 1.0.2） |
 
 用量统计思路参考社区 session 工具（见 `lib/usage.js` 头注释）。
 

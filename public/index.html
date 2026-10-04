@@ -481,6 +481,7 @@
                       <option value="">(继承供应商)</option>
                       <option value="openai-completions">openai-completions</option>
                       <option value="openai-responses">openai-responses</option>
+                      <option value="azure-openai-responses">azure-openai-responses</option>
                       <option value="openai-codex-responses">openai-codex-responses</option>
                       <option value="anthropic-messages">anthropic-messages</option>
                       <option value="google-generative-ai">google-generative-ai</option>
@@ -524,6 +525,30 @@
                   <p class="hint-block">留空=用 Pi 默认映射；填 provider 值=支持该档；选「禁用」=该档不可用</p>
                 </div>
 
+                <div class="block-lite" style="margin-top:8px">
+                  <div class="block-head" style="margin-bottom:8px">
+                    <h3>采样参数 · Sampling</h3>
+                    <button type="button" id="m-spl-clear" class="btn ghost sm">清空</button>
+                  </div>
+                  <div class="grid-3">
+                    <label>temperature
+                      <input id="m-spl-temperature" type="number" step="any" placeholder="不设置">
+                    </label>
+                    <label>top_p
+                      <input id="m-spl-top_p" type="number" step="any" placeholder="不设置">
+                    </label>
+                    <label>top_k
+                      <input id="m-spl-top_k" type="number" step="any" placeholder="不设置">
+                    </label>
+                  </div>
+                  <label style="margin-top:8px">其他参数（JSON，可选 · 例如 presence_penalty、min_p、seed）
+                    <textarea id="m-spl-extra" rows="2" spellcheck="false" placeholder='{"presence_penalty":0,"seed":42}'></textarea>
+                  </label>
+                  <p class="hint-block">按思考档位覆盖（该档全部留空=继承全局）</p>
+                  <div class="spl-grid" id="m-spl-grid"></div>
+                  <p class="hint-block">仅 openai-completions、openai-responses、azure-openai-responses 生效</p>
+                </div>
+
                 <details class="adv">
                   <summary>高级 · Compat / Headers (JSON)</summary>
                   <label>Compat
@@ -558,7 +583,7 @@
         <span class="page-linkbar-sep">·</span>
         <a class="page-linkbar-a" href="#/workspaces">工作区映射</a>
         <span class="page-linkbar-sep">·</span>
-        <a class="page-linkbar-a" href="https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent/examples/extensions/subagent" target="_blank" rel="noopener noreferrer">官方示例</a>
+        <a class="page-linkbar-a" href="https://github.com/earendil-works/pi/tree/main/packages/coding-agent/examples/extensions/subagent" target="_blank" rel="noopener noreferrer">官方示例</a>
       </div>
 
       <div class="split">
@@ -996,7 +1021,7 @@
             <span class="page-linkbar-sep">·</span>
             <a class="page-linkbar-a" href="https://pi.dev/packages" target="_blank" rel="noopener noreferrer">包目录</a>
             <span class="page-linkbar-sep">·</span>
-            <a class="page-linkbar-a" href="https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/packages.md" target="_blank" rel="noopener noreferrer">Packages 文档</a>
+            <a class="page-linkbar-a" href="https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/packages.md" target="_blank" rel="noopener noreferrer">Packages 文档</a>
           </div>
 
           <p class="page-hint-inline" id="plugins-path-hint">extensions 建议用 <code>~/.pi/agent/extensions/...</code>；保存时会自动便携化。</p>
@@ -1079,9 +1104,9 @@ subagent · tasks: [
             </div>
             <div class="page-guide-links">
               <span class="page-guide-links-k">外链</span>
-              <a class="page-guide-chip" href="https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent/examples/extensions/subagent" target="_blank" rel="noopener noreferrer">官方 subagent 示例</a>
-              <a class="page-guide-chip" href="https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/extensions.md" target="_blank" rel="noopener noreferrer">Extensions 文档</a>
-              <a class="page-guide-chip" href="https://github.com/badlogic/pi-mono" target="_blank" rel="noopener noreferrer">Pi 源码仓库</a>
+              <a class="page-guide-chip" href="https://github.com/earendil-works/pi/tree/main/packages/coding-agent/examples/extensions/subagent" target="_blank" rel="noopener noreferrer">官方 subagent 示例</a>
+              <a class="page-guide-chip" href="https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/extensions.md" target="_blank" rel="noopener noreferrer">Extensions 文档</a>
+              <a class="page-guide-chip" href="https://github.com/earendil-works/pi" target="_blank" rel="noopener noreferrer">Pi 源码仓库</a>
             </div>
           </article>
 
@@ -1194,9 +1219,9 @@ pi update --extensions</pre>
             <div class="page-guide-links">
               <span class="page-guide-links-k">外链</span>
               <a class="page-guide-chip" href="https://pi.dev/packages" target="_blank" rel="noopener noreferrer">包目录 pi.dev/packages</a>
-              <a class="page-guide-chip" href="https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/packages.md" target="_blank" rel="noopener noreferrer">Packages 文档</a>
-              <a class="page-guide-chip" href="https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/extensions.md" target="_blank" rel="noopener noreferrer">Extensions 文档</a>
-              <a class="page-guide-chip" href="https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent/examples/extensions" target="_blank" rel="noopener noreferrer">官方扩展示例</a>
+              <a class="page-guide-chip" href="https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/packages.md" target="_blank" rel="noopener noreferrer">Packages 文档</a>
+              <a class="page-guide-chip" href="https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/extensions.md" target="_blank" rel="noopener noreferrer">Extensions 文档</a>
+              <a class="page-guide-chip" href="https://github.com/earendil-works/pi/tree/main/packages/coding-agent/examples/extensions" target="_blank" rel="noopener noreferrer">官方扩展示例</a>
             </div>
           </article>
 

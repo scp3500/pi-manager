@@ -62,16 +62,41 @@
     $('#ov-model')?.addEventListener('change', () => setDirty('openvl', true));
     $('#openvl-form')?.addEventListener('input', (e) => {
       if (e.target && e.target.id === 'ov-apiKey') {
+        const inp = $('#ov-apiKey');
+        if (state.openvlKeyPlaceholder && !state.openvlKeyVisible && inp) {
+          // 在掩码基础上开始打字：丢掉圆点，只留真实输入
+          inp.value = inp.value.replace(/[•·]/g, '');
+          state.openvlKeyPlaceholder = false;
+        }
+        // 真的敲了字才算「改过 key」
         state.openvlKeepKey = false;
-        state.openvlKeyPlaceholder = false;
       }
       setDirty('openvl', true);
     });
+    // 点进去不清空（清空看着就像 key 没了），只全选，直接敲字即覆盖
     $('#ov-apiKey')?.addEventListener('focus', () => {
-      if (state.openvlKeyPlaceholder && !state.openvlKeyVisible) {
-        $('#ov-apiKey').value = '';
-        state.openvlKeyPlaceholder = false;
-        state.openvlKeepKey = false;
+      const inp = $('#ov-apiKey');
+      if (inp && state.openvlKeyPlaceholder && !state.openvlKeyVisible) {
+        setTimeout(() => {
+          try {
+            inp.select();
+          } catch {
+            /* ignore */
+          }
+        }, 0);
+      }
+    });
+    $('#ov-apiKey')?.addEventListener('blur', () => {
+      const inp = $('#ov-apiKey');
+      if (
+        inp &&
+        !state.openvlKeyVisible &&
+        state.openvlKeepKey &&
+        state.openvlStoredKey &&
+        inp.value.trim() === ''
+      ) {
+        inp.value = maskDots(state.openvlStoredKey.length);
+        state.openvlKeyPlaceholder = true;
       }
     });
     $('#openvl-form')?.addEventListener('change', () => setDirty('openvl', true));

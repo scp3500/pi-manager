@@ -207,19 +207,46 @@ function bindModelsUI() {
   $('#provider-delete').addEventListener('click', deleteProvider);
   $('#provider-test')?.addEventListener('click', testProviderUI);
   $('#provider-form').addEventListener('input', () => {
-    if (document.activeElement === $('#p-apiKey')) {
-      // 用户改了输入框：不再视为「保持原值」
-      state.keepApiKey = false;
-      state.keyIsPlaceholder = false;
-    }
     setDirty('provider', true);
   });
+  // API Key 输入框：圆点只是掩码，不等于「用户改过 key」。
+  // 点进去不清空（清空看着就像 key 没了），只全选，直接敲字即覆盖。
   $('#p-apiKey')?.addEventListener('focus', () => {
-    // 点进圆点占位时清空，方便直接输入新 key
+    const inp = $('#p-apiKey');
+    if (inp && state.keyIsPlaceholder && !state.keyVisible) {
+      // 等浏览器默认聚焦行为走完再全选
+      setTimeout(() => {
+        try {
+          inp.select();
+        } catch {
+          /* ignore */
+        }
+      }, 0);
+    }
+  });
+  $('#p-apiKey')?.addEventListener('input', () => {
+    const inp = $('#p-apiKey');
+    if (!inp) return;
     if (state.keyIsPlaceholder && !state.keyVisible) {
-      $('#p-apiKey').value = '';
+      // 在掩码基础上开始打字：丢掉圆点，只留真实输入
+      inp.value = inp.value.replace(/[•·]/g, '');
       state.keyIsPlaceholder = false;
-      state.keepApiKey = false;
+    }
+    // 真的敲了字才算「改过 key」，之后保存才采用输入框的值
+    state.keepApiKey = false;
+  });
+  $('#p-apiKey')?.addEventListener('blur', () => {
+    // 点进来又没输入任何东西：恢复圆点占位，避免看上去像 key 没了
+    const inp = $('#p-apiKey');
+    if (
+      inp &&
+      !state.keyVisible &&
+      state.keepApiKey &&
+      state.storedApiKey &&
+      inp.value.trim() === ''
+    ) {
+      inp.value = maskDots(state.storedApiKey.length);
+      state.keyIsPlaceholder = true;
     }
   });
   $('#toggle-key').addEventListener('click', toggleKey);
@@ -244,6 +271,8 @@ function bindModelsUI() {
     setDirty('model', true);
   });
   $('#m-tlm-clear')?.addEventListener('click', clearTlmForm);
+  buildSamplingGrid();
+  $('#m-spl-clear')?.addEventListener('click', clearSamplingForm);
   // Ctrl+S 统一由 bindGlobalSave 处理
 }
 
@@ -503,6 +532,145 @@ function openModelEditor(modelId, saved = false) {
   $('#model-editor').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
+/**
+ * samplingParams / samplingParamsByThinkingLevel 校验（Pi 1.0.2+）。
+ * 只对 openai-completions / openai-responses / azure-openai-responses 生效，
+ * 其他协议 Pi 会忽略这两个字段。
+ */
+function validateSamplingParams(obj, label) {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
+    throw new Error(label + ' 必须是 JSON 对象');
+  }
+  return obj;
+}
+
+/** 键名必须是 Pi 思考档位（非 thinkingLevelMap 里的厂商值），值必须是对象。 */
+function validateSamplingByThinkingLevel(obj, label) {
+  validateSamplingParams(obj, label);
+  for (const lv of Object.keys(obj)) {
+    if (!TLM_LEVELS.includes(lv)) {
+      throw new Error(
+        label + ' 的键必须是 ' + TLM_LEVELS.join(' / ') + '，收到 "' + lv + '"'
+      );
+    }
+    const params = obj[lv];
+    if (!params || typeof params !== 'object' || Array.isArray(params)) {
+      throw new Error(label + '["' + lv + '"] 必须是 JSON 对象');
+    }
+  }
+  return obj;
+}
+
+/** 采样参数（Pi 1.0.2+）里做成一格一格的常用键，其他键走 JSON 输入。 */
+const SPL_QUICK = ['temperature', 'top_p', 'top_k'];
+
+function buildSamplingGrid() {
+  const box = $('#m-spl-grid');
+  if (!box) return;
+  box.innerHTML = TLM_LEVELS.map(
+    (lv) => `
+    <div class="spl-item" data-level="${lv}">
+      <span class="spl-lv">${lv}</span>
+      <div class="spl-qs">
+        ${SPL_QUICK.map(
+          (k) =>
+            `<input id="m-spl-${lv}-${k}" data-level="${lv}" data-key="${k}" type="number" step="any" placeholder="${k}" spellcheck="false">`
+        ).join('')}
+      </div>
+      <input id="m-spl-${lv}-json" class="spl-json" placeholder='其他键 {"min_p":0.05}' spellcheck="false">
+    </div>`
+  ).join('');
+}
+
+/** 把对象里不属于常用键的部分抽成 JSON 文本，保证手写的罕见键不丢。 */
+function splRest(obj, pretty) {
+  const rest = {};
+  for (const [k, v] of Object.entries(obj || {})) {
+    if (!SPL_QUICK.includes(k)) rest[k] = v;
+  }
+  return Object.keys(rest).length ? JSON.stringify(rest, null, pretty ? 2 : 0) : '';
+}
+
+function fillSamplingForm(samplingParams, samplingByLevel) {
+  const base = samplingParams && typeof samplingParams === 'object' ? samplingParams : {};
+  for (const k of SPL_QUICK) {
+    const el = $('#m-spl-' + k);
+    if (el) el.value = base[k] != null ? String(base[k]) : '';
+  }
+  const extra = $('#m-spl-extra');
+  if (extra) extra.value = splRest(base, true);
+
+  const byLevel = samplingByLevel && typeof samplingByLevel === 'object' ? samplingByLevel : {};
+  for (const lv of TLM_LEVELS) {
+    const raw = byLevel[lv];
+    const one = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+    for (const k of SPL_QUICK) {
+      const el = $('#m-spl-' + lv + '-' + k);
+      if (el) el.value = one[k] != null ? String(one[k]) : '';
+    }
+    const j = $('#m-spl-' + lv + '-json');
+    if (j) j.value = splRest(one, false);
+  }
+}
+
+function clearSamplingForm() {
+  fillSamplingForm(null, null);
+  setDirty('model', true);
+}
+
+/**
+ * 读表单 → { samplingParams, samplingParamsByThinkingLevel }。
+ * 没内容时返回 undefined，saveModel 会发空串让服务端删键。
+ */
+function readSamplingFromForm() {
+  const val = (id) => {
+    const el = $(id);
+    return el && el.value != null ? String(el.value) : '';
+  };
+  const num = (v, label) => {
+    const t = v.trim();
+    if (t === '') return undefined;
+    const n = Number(t);
+    if (!Number.isFinite(n)) throw new Error(label + ' 必须是数字');
+    return n;
+  };
+
+  const base = {};
+  for (const k of SPL_QUICK) {
+    const n = num(val('#m-spl-' + k), k);
+    if (n !== undefined) base[k] = n;
+  }
+  const extra = parseJsonField(val('#m-spl-extra'), '其他参数');
+  if (extra !== undefined) {
+    validateSamplingParams(extra, '其他参数');
+    for (const [k, v] of Object.entries(extra)) {
+      if (base[k] === undefined) base[k] = v; // 上面的输入框优先
+    }
+  }
+
+  const byLevel = {};
+  for (const lv of TLM_LEVELS) {
+    const one = {};
+    for (const k of SPL_QUICK) {
+      const n = num(val('#m-spl-' + lv + '-' + k), lv + '.' + k);
+      if (n !== undefined) one[k] = n;
+    }
+    const j = parseJsonField(val('#m-spl-' + lv + '-json'), lv + ' 其他键');
+    if (j !== undefined) {
+      validateSamplingParams(j, lv + ' 其他键');
+      for (const [k, v] of Object.entries(j)) {
+        if (one[k] === undefined) one[k] = v;
+      }
+    }
+    if (Object.keys(one).length) byLevel[lv] = one;
+  }
+
+  return {
+    samplingParams: Object.keys(base).length ? base : undefined,
+    samplingParamsByThinkingLevel: Object.keys(byLevel).length ? byLevel : undefined,
+  };
+}
+
 function fillModelForm(m) {
   $('#m-id').value = m.id || '';
   $('#m-name').value = m.name || '';
@@ -519,6 +687,7 @@ function fillModelForm(m) {
     fillTlmForm(m.compat.reasoningEffortMap);
   }
   $('#m-compat').value = m.compat ? JSON.stringify(m.compat, null, 2) : '';
+  fillSamplingForm(m.samplingParams, m.samplingParamsByThinkingLevel);
   $('#m-headers').value = m.headers ? JSON.stringify(m.headers, null, 2) : '';
 }
 
@@ -578,6 +747,17 @@ async function saveProvider() {
       (state.keepApiKey && state.currentProviderId && keyVal === '')
     ) {
       body.apiKey = '__KEEP__';
+    } else if (
+      keyVal === '' &&
+      state.currentProviderId &&
+      state.storedApiKey &&
+      state.providerDetail?.apiKeyMasked?.configured
+    ) {
+      // 既有 key 且用户在输入框里手动清空：确认后再删，避免误操作丢密钥
+      if (!confirm('API Key 输入框为空，保存会清空已配置的密钥。确定要清空吗？')) {
+        return false;
+      }
+      body.apiKey = '';
     } else {
       body.apiKey = keyVal;
     }
@@ -671,6 +851,14 @@ async function saveModel() {
     const compat = parseJsonField($('#m-compat').value, 'Compat');
     if (compat !== undefined) body.compat = compat;
     else body.compat = '';
+
+    const spl = readSamplingFromForm();
+    if (spl.samplingParams !== undefined) body.samplingParams = spl.samplingParams;
+    else body.samplingParams = ''; // clear
+
+    if (spl.samplingParamsByThinkingLevel !== undefined) {
+      body.samplingParamsByThinkingLevel = spl.samplingParamsByThinkingLevel;
+    } else body.samplingParamsByThinkingLevel = ''; // clear
 
     const headers = parseJsonField($('#m-headers').value, 'Headers');
     if (headers !== undefined) body.headers = headers;
@@ -930,10 +1118,22 @@ async function runProviderTestFromModal() {
       st.className = 'hint-block ' + (r.ok ? 'ok' : 'err');
       const ep = r.endpoint ? ' · ' + r.endpoint : '';
       const md = r.model ? ' · model ' + r.model : '';
-      const au = r.api ? ' · api ' + r.api : '';
+      // api = 配置里选的协议；apiUsed = 本次实探发出去的协议。两者不一致必须显式暴露。
+      const au = r.api
+        ? r.apiUsed && r.apiUsed !== r.api
+          ? ' · api ' + r.api + '（实探 ' + r.apiUsed + '）'
+          : ' · api ' + r.api
+        : r.apiUsed
+        ? ' · api ' + r.apiUsed
+        : '';
+      const weak =
+        r.ok && r.weak
+          ? ' ⚠ 弱通过（404：该路径不存在，通常 Base URL 少了路径前缀，如 /anthropic，只能证明可达）'
+          : '';
+      const bHint = r.baseUrlHint ? ' → Base URL 建议改为 ' + r.baseUrlHint : '';
       st.textContent = r.ok
-        ? '检测通过 ✓ ' + (r.message || ('HTTP ' + (r.status || ''))) + md + au + ep
-        : '检测失败: ' + (r.error || r.message || 'unknown') + md + au + ep;
+        ? '检测通过 ✓ ' + (r.message || ('HTTP ' + (r.status || ''))) + md + au + ep + weak + bHint
+        : '检测失败: ' + (r.error || r.message || 'unknown') + md + au + ep + bHint;
     }
     // 同步到页面状态条（若存在）
     const pageSt = $('#provider-status');
@@ -1194,6 +1394,8 @@ async function importSelectedRemoteModels() {
     renderProviderList, showProviderEmpty, selectProvider, openNewProvider, saveProvider, deleteProvider,
     renderModelTable, openModelEditor, saveModel, deleteModel,
     buildTlmGrid, fillTlmForm, readTlmFromForm, fillCostForm, readCostFromForm,
+    validateSamplingParams, validateSamplingByThinkingLevel,
+    buildSamplingGrid, fillSamplingForm, readSamplingFromForm,
     renderRemoteModelsList, selectRemote, fetchRemoteModelsUI, importSelectedRemoteModels,
     testProviderUI, closeRemotePanel
   };

@@ -7,6 +7,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+if (-not $env:PI_CONFIG_DIR) { $env:PI_CONFIG_DIR = 'E:\pi_agent\pi_config' }
 New-Item -ItemType Directory -Force -Path (Split-Path $LogFile) | Out-Null
 
 # Rotate huge logs lightly

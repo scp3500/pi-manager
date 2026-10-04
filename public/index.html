@@ -5,17 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pi Manager</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <script>
-    try {
-      var __t = localStorage.getItem('pi-manager-theme');
-      var __ok = {
-        default: 1, midnight: 1, aurora: 1, orchid: 1, amber: 1, miku: 1,
-        light: 1, paper: 1, rose: 1, 'miku-light': 1
-      };
-      if (__ok[__t]) document.documentElement.setAttribute('data-theme', __t);
-    } catch (e) {}
-  </script>
-  <link rel="stylesheet" href="/style.css?v=nav-noscroll-1">
+  <script src="/theme-init.js"></script>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <header class="app-header">
@@ -1490,13 +1481,13 @@ pi update --extensions</pre>
   <script src="/openvl-ui.js"></script>
   <script src="/console-ui.js"></script>
   <script src="/content-pages.js"></script>
-  <script src="/dash-sessions.js?v=no-jump-1"></script>
+  <script src="/dash-sessions.js"></script>
   <script src="/usage-ui.js"></script>
   <script src="/promptmap-ui.js"></script>
   <script src="/runtime-ui.js"></script>
   <script src="/ops-ui.js"></script>
   <script src="/trash-ui.js"></script>
   <script src="/nav-icons.js"></script>
-  <script src="/chat-ui.js?v=send-1"></script>
+  <script src="/chat-ui.js"></script>
 </body>
 </html>

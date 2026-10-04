@@ -55,9 +55,21 @@ function safePublicPath(urlPath) {
 /** Small static file cache (mtime+size). Caps memory for public assets. */
 const staticCache = new Map(); // path -> { mtimeMs, size, type, content }
 const STATIC_CACHE_MAX = 80;
-const STATIC_CACHE_MAX_BYTES = 512 * 1024; // skip caching files larger than 512KB
+const STATIC_CACHE_MAX_BYTES = 2 * 1024 * 1024;
+const SPA_ROUTES = new Set([
+  '/',
+  '/models',
+  '/agents',
+  '/openvl',
+  '/prompt',
+  '/memory',
+  '/knowledge',
+  '/skills',
+  '/plugins',
+  '/workspaces',
+]);
 
-function serveStatic(res, urlPath) {
+function serveStatic(req, res, urlPath) {
   const filePath = safePublicPath(urlPath);
   if (!filePath) return sendError(res, 404, 'Not Found');
   const ext = path.extname(filePath);
@@ -66,40 +78,56 @@ function serveStatic(res, urlPath) {
   try {
     const st = fs.statSync(filePath);
     if (!st.isFile()) return sendError(res, 404, 'Not Found');
-    const hit = staticCache.get(filePath);
-    if (hit && hit.mtimeMs === st.mtimeMs && hit.size === st.size) {
-      res.writeHead(200, {
-        'Content-Type': hit.type,
-        'Cache-Control': 'no-cache',
-        'X-Static-Cache': 'HIT',
-        ...securityHeaders(),
-      });
-      res.end(hit.content);
+    const etag = 'W/"' + st.size.toString(16) + '-' + Math.floor(st.mtimeMs).toString(16) + '"';
+    const cacheControl = urlPath.includes('/vendor/') ? 'public, max-age=300' : 'no-cache';
+    const common = {
+      ETag: etag,
+      'Last-Modified': new Date(st.mtimeMs).toUTCString(),
+      'Cache-Control': cacheControl,
+      ...securityHeaders(),
+    };
+    const inm = req.headers['if-none-match'];
+    if (inm && inm.split(',').map((s) => s.trim()).includes(etag)) {
+      res.writeHead(304, common);
+      res.end();
       return;
     }
-    const content = fs.readFileSync(filePath);
-    if (st.size <= STATIC_CACHE_MAX_BYTES) {
-      if (staticCache.size >= STATIC_CACHE_MAX) {
-        let i = 0;
-        const drop = Math.floor(STATIC_CACHE_MAX / 4) || 1;
-        for (const k of staticCache.keys()) {
-          staticCache.delete(k);
-          if (++i >= drop) break;
+    let content;
+    let cacheState = 'MISS';
+    const hit = staticCache.get(filePath);
+    if (hit && hit.mtimeMs === st.mtimeMs && hit.size === st.size) {
+      content = hit.content;
+      cacheState = 'HIT';
+    } else {
+      content = fs.readFileSync(filePath);
+      if (st.size <= STATIC_CACHE_MAX_BYTES) {
+        if (staticCache.size >= STATIC_CACHE_MAX) {
+          let i = 0;
+          const drop = Math.floor(STATIC_CACHE_MAX / 4) || 1;
+          for (const k of staticCache.keys()) {
+            staticCache.delete(k);
+            if (++i >= drop) break;
+          }
         }
+        staticCache.set(filePath, {
+          mtimeMs: st.mtimeMs,
+          size: st.size,
+          type,
+          content,
+        });
       }
-      staticCache.set(filePath, {
-        mtimeMs: st.mtimeMs,
-        size: st.size,
-        type,
-        content,
-      });
     }
-    res.writeHead(200, {
+    const headers = {
       'Content-Type': type,
-      'Cache-Control': 'no-cache',
-      'X-Static-Cache': 'MISS',
-      ...securityHeaders(),
-    });
+      'Content-Length': content.length,
+      ...common,
+    };
+    if (process.env.PI_MANAGER_DEBUG === '1') headers['X-Static-Cache'] = cacheState;
+    res.writeHead(200, headers);
+    if (req.method === 'HEAD') {
+      res.end();
+      return;
+    }
     res.end(content);
   } catch {
     sendError(res, 404, 'Not Found');
@@ -134,24 +162,13 @@ const server = http.createServer(async (req, res) => {
     if (await handleApi(req, res, pathname)) return;
 
     if (req.method === 'GET' || req.method === 'HEAD') {
-      if (
-        pathname === '/' ||
-        pathname === '/models' ||
-        pathname === '/agents' ||
-        pathname === '/openvl' ||
-        pathname === '/prompt' ||
-        pathname === '/memory' ||
-        pathname === '/knowledge' ||
-        pathname === '/skills' ||
-        pathname === '/plugins' ||
-        pathname === '/workspaces'
-      ) {
-        serveStatic(res, '/index.html');
+      if (SPA_ROUTES.has(pathname)) {
+        serveStatic(req, res, '/index.html');
         return;
       }
       const ext = path.extname(pathname);
       if (STATIC_TYPES[ext]) {
-        serveStatic(res, pathname);
+        serveStatic(req, res, pathname);
         return;
       }
     }

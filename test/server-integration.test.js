@@ -418,6 +418,17 @@ describe('server integration (isolated tmp)', () => {
     assert.match(String(res.headers['content-type'] || ''), /text\/html/);
   });
 
+  it('index.html has no inline scripts', () => {
+    const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+    assert.equal(/<script(?![^>]*\bsrc=)[^>]*>/i.test(html), false);
+  });
+
+  it('GET /theme-init.js -> 200 javascript', async () => {
+    const res = await request('GET', '/theme-init.js');
+    assert.equal(res.status, 200);
+    assert.match(String(res.headers['content-type'] || ''), /javascript/);
+  });
+
   it('static JS resource -> 200 application/javascript', async () => {
     for (const file of ['/app.js', '/models-ui.js', '/agents-ui.js', '/openvl-ui.js']) {
       const res = await request('GET', file);
@@ -426,4 +437,29 @@ describe('server integration (isolated tmp)', () => {
       assert.ok(res.text.length > 100, file + ' should not be empty');
     }
   });
+
+  it('GET /style.css -> 200 with ETag', async () => {
+    const res = await request('GET', '/style.css');
+    assert.equal(res.status, 200);
+    assert.ok(res.headers.etag);
+    const etag = res.headers.etag;
+    const again = await request('GET', '/style.css', { headers: { 'If-None-Match': etag } });
+    assert.equal(again.status, 304);
+    assert.equal(again.text, '');
+  });
+
+  it('HEAD /style.css -> 200 with Content-Length and empty body', async () => {
+    const res = await request('HEAD', '/style.css');
+    assert.equal(res.status, 200);
+    assert.ok(Number(res.headers['content-length']) > 0);
+    assert.equal(res.text, '');
+  });
+
+  it('GET /vendor/lucide.min.js -> short max-age, no debug header by default', async () => {
+    const res = await request('GET', '/vendor/lucide.min.js');
+    assert.equal(res.status, 200);
+    assert.equal(res.headers['cache-control'], 'public, max-age=300');
+    assert.equal(res.headers['x-static-cache'], undefined);
+  });
 });
+

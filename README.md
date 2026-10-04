@@ -187,8 +187,10 @@ npm install -g @scp3500/openvl
 | `PORT` | `3001` | 服务端口 |
 | `PI_MANAGER_HOST` | `127.0.0.1` | 监听地址（默认仅 loopback） |
 | `PI_MANAGER_ALLOW_REMOTE` | 未设置 | 设为 `1` 才允许非 loopback Host |
-| `PI_CONFIG_DIR` | `E:/pi_agent/pi_config` | 共享 Agent / Skill 配置根 |
+| `PI_MANAGER_ALLOWED_ORIGINS` | 未设置 | 逗号分隔的完整 Origin 白名单（如 `http://localhost:5173`），用于前端开发时跨端口写请求 |
+| `PI_CONFIG_DIR` | 自动 | 共享 Agent / Skill 配置根。顺序：显式环境变量 → `E:\pi_agent\pi_config`（存在才认）→ `~/.pi/config`。`start.bat` / `start-bg.ps1` 仍显式设为 `E:\pi_agent\pi_config` |
 | `AGENTS_DIR` | `$PI_CONFIG_DIR/agents` | 递归 Agent Markdown 根目录 |
+| `PI_MANAGER_DEBUG` | 未设置 | 设为 `1` 时静态响应多带一个 `X-Static-Cache: HIT/MISS` 调试头 |
 | `PI_AGENT_DIR` | `~/.pi/agent` | Pi 运行时配置根 |
 | `PI_MANAGER_CONFIG` | `$PI_AGENT_DIR/pi-manager.json` | 控制台配置 |
 | `SESSIONS_DIR` | `$PI_AGENT_DIR/sessions` | 会话目录（测试可指临时目录） |
@@ -201,7 +203,7 @@ npm install -g @scp3500/openvl
 > [!IMPORTANT]
 > 默认 **只监听 127.0.0.1**。**不要把端口裸暴露到公网。**
 
-- 默认 bind loopback；写请求校验 Host / Origin  
+- 默认 bind loopback；写请求校验 Host / Origin（Origin 端口须与服务端口一致，跨端口需设 `PI_MANAGER_ALLOWED_ORIGINS`）  
 - 本地 loopback 控制台：Provider / OpenVL 详情默认返回真实 Key；`?redact=1` 才脱敏  
 - 工作区路径：`..` + symlink 越界拒绝；bootstrap **先校验再写盘**  
 - Markdown 预览 / 聊天走 `md-safe.js`（剥 raw HTML + 白名单标签）  
@@ -224,7 +226,7 @@ pi-manager/
 ├── public/           # 静态前端，无构建
 ├── start.bat
 ├── stop.bat
-├── docs/assets/      # README 图
+├── docs/             # prompt-map、加固说明、README 图
 └── test/
 ```
 
@@ -234,6 +236,15 @@ npm test
 ```
 
 静态资源硬刷新；改 `server.js` / `lib/*` 需重启。
+
+---
+
+## 文档
+
+| 文档 | 内容 |
+|------|------|
+| [提示词结构](docs/prompt-map.md) | `#/promptmap` 怎么切系统提示词、两种 token 口径 |
+| [加固与正确性修复](docs/hardening.md) | 2026-10-04：断开会停、UTF-8、CSP 主题、Key 命令、Origin 端口等 |
 
 ---
 

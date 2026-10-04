@@ -3,6 +3,7 @@ setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"
 
 if not defined PORT set "PORT=3001"
+if not defined PI_CONFIG_DIR set "PI_CONFIG_DIR=E:\pi_agent\pi_config"
 set "URL=http://localhost:%PORT%/"
 set "LOG_DIR=%~dp0logs"
 set "LOG_FILE=%LOG_DIR%\server.log"

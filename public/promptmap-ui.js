@@ -15,6 +15,13 @@ const PM_ICON = {
   cwd: 'map-pin',
 };
 const PM_CELLS = 50; // 10 × 5，每格 2%
+// pi 安装来源标签：托管安装（pi.dev）/ npm 全局 / 环境变量指定；未知来源不渲染
+const PM_INSTALL_LABEL = {
+  'managed-install': '托管安装',
+  'npm-global': 'npm 全局',
+  env: '环境变量指定',
+  shim: '命令入口',
+};
 
 function ensurePromptMapState() {
   if (!state.promptMapData) state.promptMapData = null;
@@ -121,7 +128,10 @@ function pmStatsHtml(d) {
     '<span class="' + (ok ? 'pm-ok' : 'pm-warn') + '">' + (ok ? '切分自检通过' : '切分自检未通过') + '</span></p>' +
     '<p class="pm-total-sub pm-alt">pi 口径 ' + pmInt(d.piTokens) + ' tokens（字符 ÷ 4，状态栏用的就是这个）</p>' +
     '<p class="pm-cwd-line"><i data-lucide="folder-root"></i><code>' + pmEsc(d.cwd) + '</code>' +
-    '<span class="pm-pi-ver">pi ' + pmEsc(d.piVersion) + '</span></p>' +
+    '<span class="pm-pi-ver">pi ' + pmEsc(d.piVersion) + '</span>' +
+    (PM_INSTALL_LABEL[d.piInstallKind]
+      ? '<span class="pm-pi-ver pm-pi-src">' + PM_INSTALL_LABEL[d.piInstallKind] + '</span>'
+      : '') + '</p>' +
     (d.customPromptFile
       ? '<p class="pm-cwd-line pm-custom"><i data-lucide="file-warning"></i>自定义提示词（替换内置）：<code>' +
         pmEsc(d.customPromptFile) + '</code></p>'

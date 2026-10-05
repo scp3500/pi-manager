@@ -251,6 +251,20 @@ describe('promptmap-ui: Stats 与 tokens 单位', () => {
   });
 });
 
+describe('promptmap-ui: pi 安装来源标签', () => {
+  it('托管安装 / npm 全局 / 环境变量各给出来源标签', () => {
+    assert.ok(loaded({ ...REPORT, piInstallKind: 'managed-install' }).root.innerHTML.includes('托管安装'));
+    assert.ok(loaded({ ...REPORT, piInstallKind: 'npm-global' }).root.innerHTML.includes('npm 全局'));
+    assert.ok(loaded({ ...REPORT, piInstallKind: 'env' }).root.innerHTML.includes('环境变量指定'));
+  });
+
+  it('来源缺失时不渲染标签，也不出现 undefined', () => {
+    const html = loaded({ ...REPORT, piInstallKind: undefined }).root.innerHTML;
+    assert.ok(!html.includes('pm-pi-src'), '不该渲染来源标签');
+    assert.ok(!html.includes('undefined'), '不该出现 undefined');
+  });
+});
+
 describe('promptmap-ui: 分区块与展开', () => {
   it('每个区块一块，含 token 数与占比条，但正文默认不渲染', () => {
     const h = loaded(REPORT);

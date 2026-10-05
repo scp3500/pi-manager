@@ -30,6 +30,170 @@ async function loadFlatModels() {
   }
 }
 
+// ── Pi 1.0.3 provider key 迁移体检（azure-openai-responses → azure） ──────────
+
+/** 「稍后」只用 sessionStorage 一个 key：只隐藏本次会话，新开页面/重启后会再提示。 */
+const MIGRATION_DISMISS_KEY = 'pi-manager-migration-dismissed';
+let migrationItems = [];
+let migrationSessionDismissed = false;
+
+function migrationStore() {
+  try {
+    return window.sessionStorage || null;
+  } catch {
+    return null;
+  }
+}
+
+function isMigrationDismissed() {
+  if (migrationSessionDismissed) return true;
+  const st = migrationStore();
+  try {
+    return !!st && st.getItem(MIGRATION_DISMISS_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function clearMigrationDismiss() {
+  migrationSessionDismissed = false;
+  const st = migrationStore();
+  try {
+    if (st) st.removeItem(MIGRATION_DISMISS_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** 人话描述：写了几处、分别在哪个文件的哪个位置。 */
+function describeMigrations(items) {
+  const places = [];
+  for (const it of items) {
+    const name = String(it.file || '').split(/[\\/]/).pop() || String(it.file || '');
+    const where = String(it.where || '').replace(/^[^ ]+\s*的\s*/, '');
+    const one = name + ' 的 ' + where;
+    if (!places.includes(one)) places.push(one);
+  }
+  return (
+    '检测到 ' +
+    items.length +
+    ' 处 Pi 1.0.3 旧 provider key：azure-openai-responses → azure（' +
+    places.join('；') +
+    '）'
+  );
+}
+
+function hideMigrationBanner() {
+  const box = $('#migration-banner');
+  if (!box) return;
+  box.style.display = 'none';
+  box.style.color = '';
+  box.className = 'hint-block';
+}
+
+function renderMigrationBanner(items) {
+  const box = $('#migration-banner');
+  if (!box) return;
+  const txt = $('#migration-text');
+  if (txt) txt.textContent = describeMigrations(items);
+  const apply = $('#migration-apply');
+  if (apply) apply.disabled = !items.some((it) => it.canAutoFix);
+  box.style.color = '';
+  box.className = 'hint-block';
+  box.style.display = '';
+}
+
+/** 迁移/体检后把冲突与跳过的文件说明写进提示条（不说「已全部完成」）。 */
+function showMigrationNotice(changedCount, conflicts, skipped) {
+  const box = $('#migration-banner');
+  const bits = [];
+  if (changedCount) bits.push('已迁移 ' + changedCount + ' 处');
+  for (const c of conflicts) {
+    bits.push('冲突 · ' + (c.where || c.file) + '：' + (c.detail || c.from + ' → ' + c.to));
+  }
+  for (const k of skipped) {
+    bits.push('跳过 · ' + (k.where || k.file) + '：' + (k.reason || '读取失败'));
+  }
+  const msg = bits.join('；');
+  if (!box) return;
+  const txt = $('#migration-text');
+  if (txt) txt.textContent = msg;
+  box.className = 'hint-block warn';
+  box.style.color = 'var(--warn)';
+  box.style.display = '';
+}
+
+async function loadMigrations() {
+  try {
+    const data = await api('/api/migrations');
+    migrationItems = (data && data.items) || [];
+    if (!migrationItems.length || isMigrationDismissed()) {
+      hideMigrationBanner();
+      return;
+    }
+    renderMigrationBanner(migrationItems);
+  } catch {
+    // 体检失败不影响模型页其它功能：保持隐藏，不弹错
+    hideMigrationBanner();
+  }
+}
+
+async function applyMigrationUI() {
+  const btn = $('#migration-apply');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '迁移中…';
+  }
+  try {
+    const result = await api('/api/migrations/azure-rename', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const changed = (result && result.changed) || [];
+    const conflicts = (result && result.conflicts) || [];
+    const skipped = (result && result.skipped) || [];
+
+    // 用户主动迁移后解除「稍后」，让重新体检的结果照实显示
+    clearMigrationDismiss();
+    await loadProviders();
+    await loadDefaults();
+    await loadFlatModels();
+    renderProviderList();
+    await loadMigrations();
+
+    if (conflicts.length || skipped.length) {
+      showMigrationNotice(changed.length, conflicts, skipped);
+      showToast(
+        '迁移 ' + changed.length + ' 处，' + conflicts.length + ' 处冲突需人工处理',
+        false
+      );
+    } else if (changed.length) {
+      showToast('已迁移 ' + changed.length + ' 处旧 provider key');
+    } else {
+      showToast('没有需要迁移的配置');
+    }
+  } catch (e) {
+    showToast('迁移失败: ' + e.message, false);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '一键迁移';
+    }
+  }
+}
+
+function dismissMigrationBanner() {
+  migrationSessionDismissed = true;
+  const st = migrationStore();
+  try {
+    if (st) st.setItem(MIGRATION_DISMISS_KEY, '1');
+  } catch {
+    /* ignore */
+  }
+  hideMigrationBanner();
+}
+
 function buildTlmGrid() {
   const box = $('#m-tlm-grid');
   if (!box) return;
@@ -273,6 +437,10 @@ function bindModelsUI() {
   $('#m-tlm-clear')?.addEventListener('click', clearTlmForm);
   buildSamplingGrid();
   $('#m-spl-clear')?.addEventListener('click', clearSamplingForm);
+  // Pi 1.0.3 迁移提示条（默认隐藏，count>0 才显示）
+  $('#migration-apply')?.addEventListener('click', applyMigrationUI);
+  $('#migration-dismiss')?.addEventListener('click', dismissMigrationBanner);
+  void loadMigrations();
   // Ctrl+S 统一由 bindGlobalSave 处理
 }
 
@@ -1397,7 +1565,8 @@ async function importSelectedRemoteModels() {
     validateSamplingParams, validateSamplingByThinkingLevel,
     buildSamplingGrid, fillSamplingForm, readSamplingFromForm,
     renderRemoteModelsList, selectRemote, fetchRemoteModelsUI, importSelectedRemoteModels,
-    testProviderUI, closeRemotePanel
+    testProviderUI, closeRemotePanel,
+    loadMigrations, applyMigrationUI, dismissMigrationBanner
   };
   // 挂载旧式 window.* 兼容导出供 app.js 路由分发及 console-ui 等调用：
   Object.assign(window, window.PiManager.models);
